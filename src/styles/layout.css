@@ -35,3 +35,49 @@
   min-height: 0;
   overflow: hidden;
 }
+
+/* ---- Undo toast ---- */
+.ldg-toast {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  bottom: 80px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #1c1c1c;
+  border: 1px solid var(--ldg-border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+  font-size: 13px;
+  color: var(--ldg-fg-2);
+  animation: ldg-toast-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.ldg-toast span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ldg-toast button {
+  font: inherit;
+  flex-shrink: 0;
+  background: transparent;
+  border: 0;
+  color: var(--ldg-orange);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+@keyframes ldg-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

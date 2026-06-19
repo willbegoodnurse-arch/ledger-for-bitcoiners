@@ -60,23 +60,15 @@
 .ldg-slogan {
   position: relative;
   z-index: 1;
-  margin: 4px 2px 4px;
-  text-align: left;
+  margin: 2px 0 4px;
+  display: flex;
+  justify-content: center;
 }
-.ldg-slogan-line {
-  font-family: "Audiowide", "Orbitron", "Pretendard Variable", system-ui, sans-serif;
-  font-size: 28px;
-  font-weight: 400;
-  letter-spacing: 0.02em;
-  color: #ffffff;
-  line-height: 1.05;
-  text-transform: uppercase;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.55), 0 0 18px rgba(255, 248, 212, 0.35),
-    0 0 32px rgba(247, 147, 26, 0.25);
-}
-.ldg-slogan-line-2 {
-  padding-left: 64px;
-  margin-top: 4px;
+.ldg-slogan-img {
+  display: block;
+  width: min(100%, 392px);
+  height: auto;
+  object-fit: contain;
 }
 
 /* ---- Header ---- */
@@ -198,6 +190,8 @@
   font-size: 11px;
   cursor: pointer;
   padding: 0;
+  text-decoration: none;
+  display: inline-block;
 }
 
 /* ---- Balance ---- */
@@ -345,17 +339,101 @@
   display: flex;
   flex-direction: column;
 }
+
+/* ---- Swipeable row (스와이프 삭제/수정) ---- */
+.swipe-row {
+  position: relative;
+  border-bottom: 0.5px solid var(--ldg-border);
+  touch-action: pan-y;
+}
+.swipe-row.menu-open {
+  z-index: 5;
+}
+.swipe-row:last-child {
+  border-bottom: 0;
+}
+.swipe-row-action {
+  font: inherit;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 132px;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+.swipe-row-action span {
+  display: inline-block;
+  width: 76px;
+  text-align: center;
+}
+.swipe-row-action-edit {
+  left: 0;
+  justify-content: flex-start;
+  background: var(--ldg-orange);
+}
+.swipe-row-action-delete {
+  right: 0;
+  justify-content: flex-end;
+  background: var(--ldg-neg);
+}
+
 .ldg-txn {
   display: grid;
-  grid-template-columns: 36px 1fr auto;
+  grid-template-columns: 36px 1fr auto auto;
   gap: 10px;
   align-items: center;
   padding: 10px 0;
-  border-bottom: 0.5px solid var(--ldg-border);
+  position: relative;
+  z-index: 1;
+  background: var(--ldg-card);
 }
-.ldg-txn:last-child {
-  border-bottom: 0;
+.swipe-row-content:not(.dragging) {
+  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+.ldg-txn-menu-btn {
+  font: inherit;
+  background: transparent;
+  border: 0;
+  color: var(--ldg-fg-4);
+  font-size: 18px;
+  line-height: 1;
+  padding: 4px 2px;
+  cursor: pointer;
+  align-self: center;
+}
+.ldg-txn-menu {
+  position: absolute;
+  top: 32px;
+  right: 6px;
+  z-index: 10;
+  background: #181818;
+  border: 1px solid var(--ldg-border);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  min-width: 84px;
+}
+.ldg-txn-menu button {
+  font: inherit;
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  color: var(--ldg-fg-2);
+  font-size: 13px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+.ldg-txn-menu button:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
 .ldg-cat-icon {
   width: 36px;
   height: 36px;

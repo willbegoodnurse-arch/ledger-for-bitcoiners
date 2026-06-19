@@ -1,5 +1,5 @@
 import { useMemo, useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import "../../styles/ledger.css";
 import "../../styles/forms.css";
 import { useLedger } from "../../state/LedgerContext";
@@ -8,16 +8,22 @@ import type { CategoryId } from "../../types";
 import CategoryGroupPicker from "./CategoryGroupPicker";
 
 export default function TransactionEntryPage() {
-  const { data, addTxn, categories } = useLedger();
+  const { data, addTxn, updateTxn, categories } = useLedger();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const [amount, setAmount] = useState("");
+  const editId = searchParams.get("edit");
+  const editingTxn = editId ? data.txns.find((t) => t.id === Number(editId)) ?? null : null;
+
+  const [amount, setAmount] = useState(() => (editingTxn ? String(Math.abs(editingTxn.amount)) : ""));
   const [cat, setCat] = useState<CategoryId>(
-    () => (categories.find((c) => c.id === "food") ?? categories.find((c) => c.group === "expense") ?? categories[0]).id
+    () =>
+      editingTxn?.cat ??
+      (categories.find((c) => c.id === "food") ?? categories.find((c) => c.group === "expense") ?? categories[0]).id
   );
-  const [title, setTitle] = useState("");
-  const [memo, setMemo] = useState("");
-  const [date, setDate] = useState(nowDatetimeLocal());
+  const [title, setTitle] = useState(() => editingTxn?.title ?? "");
+  const [memo, setMemo] = useState(() => editingTxn?.memo ?? "");
+  const [date, setDate] = useState(() => editingTxn?.date ?? nowDatetimeLocal());
 
   const selectedCategory = categories.find((c) => c.id === cat) ?? categories[0];
   const isIncome = selectedCategory.flow === "income";
@@ -28,15 +34,24 @@ export default function TransactionEntryPage() {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (amountNum <= 0) return;
-    addTxn({ title, cat, amount: amountNum, isIncome, date, memo });
-    navigate("/");
+    if (editingTxn) {
+      updateTxn(editingTxn.id, { title, cat, amount: amountNum, isIncome, date, memo });
+      navigate(-1);
+    } else {
+      addTxn({ title, cat, amount: amountNum, isIncome, date, memo });
+      navigate("/");
+    }
   };
 
   return (
     <div className="ldg-screen">
       <div className="ldg-content">
-        <div className="ldg-page-title">거래 입력</div>
-        <div className="ldg-page-sub">수기로 거래를 기록하면 현재 시세 기준 사토시 환산을 바로 보여줘요.</div>
+        <div className="ldg-page-title">{editingTxn ? "거래 수정" : "거래 입력"}</div>
+        <div className="ldg-page-sub">
+          {editingTxn
+            ? "금액·카테고리·날짜를 바꾸면 잔액과 통계에 바로 반영돼요."
+            : "수기로 거래를 기록하면 현재 시세 기준 사토시 환산을 바로 보여줘요."}
+        </div>
 
         <form onSubmit={handleSubmit}>
           <div className="ldg-card">
@@ -90,7 +105,7 @@ export default function TransactionEntryPage() {
 
             <button className="ldg-submit-btn" type="submit" disabled={amountNum <= 0} style={{ marginTop: 14 }}>
               {isIncome ? "+" : "-"}
-              {fmtKRW(amountNum)} 기록하기
+              {fmtKRW(amountNum)} {editingTxn ? "수정 완료" : "기록하기"}
             </button>
           </div>
         </form>

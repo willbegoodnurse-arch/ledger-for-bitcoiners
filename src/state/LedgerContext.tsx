@@ -1,4 +1,14 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import type { CategoryDef, Currency, LedgerData, NewTxnInput, Txn } from "../types";
 import { DUMMY } from "../lib/dummyData";
 import { BUILT_IN_CATEGORIES, DEFAULT_FALLBACK } from "../lib/categories";
@@ -16,6 +26,9 @@ interface PriceMeta {
 }
 
 const CATEGORIES_STORAGE_KEY = "myledger.categories.v1";
+const TXNS_STORAGE_KEY = "myledger.txns.v1";
+const PENDING_UNDO_STORAGE_KEY = "myledger.pendingUndo.v1";
+const UNDO_WINDOW_MS = 5000;
 
 function loadCategories(): CategoryDef[] {
   try {
@@ -35,6 +48,82 @@ function saveCategories(categories: CategoryDef[]) {
     localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(categories));
   } catch {
     // 프라이빗 모드 등으로 저장이 안 되어도 인메모리 상태로는 계속 동작
+  }
+}
+
+interface PersistedTxnsState {
+  balance: number;
+  income: number;
+  expense: number;
+  txns: Txn[];
+}
+
+function loadTxnsState(): PersistedTxnsState | null {
+  try {
+    const raw = localStorage.getItem(TXNS_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (
+      parsed &&
+      typeof parsed.balance === "number" &&
+      typeof parsed.income === "number" &&
+      typeof parsed.expense === "number" &&
+      Array.isArray(parsed.txns)
+    ) {
+      return parsed;
+    }
+  } catch {
+    // 손상된 데이터는 무시하고 더미로 폴백
+  }
+  return null;
+}
+
+function saveTxnsState(s: PersistedTxnsState) {
+  try {
+    localStorage.setItem(TXNS_STORAGE_KEY, JSON.stringify(s));
+  } catch {
+    // 프라이빗 모드 등으로 저장이 안 되어도 인메모리 상태로는 계속 동작
+  }
+}
+
+interface PersistedUndoState {
+  txn: Txn;
+  index: number;
+  expiresAt: number;
+}
+
+function loadPendingUndo(): PendingUndo | null {
+  try {
+    const raw = localStorage.getItem(PENDING_UNDO_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (
+      parsed &&
+      typeof parsed.index === "number" &&
+      typeof parsed.expiresAt === "number" &&
+      parsed.txn &&
+      typeof parsed.txn.id === "number" &&
+      Date.now() < parsed.expiresAt
+    ) {
+      return parsed;
+    }
+    localStorage.removeItem(PENDING_UNDO_STORAGE_KEY);
+  } catch {
+    localStorage.removeItem(PENDING_UNDO_STORAGE_KEY);
+  }
+  return null;
+}
+
+function savePendingUndo(pendingUndo: PendingUndo | null) {
+  try {
+    if (!pendingUndo) {
+      localStorage.removeItem(PENDING_UNDO_STORAGE_KEY);
+      return;
+    }
+    const persisted: PersistedUndoState = pendingUndo;
+    localStorage.setItem(PENDING_UNDO_STORAGE_KEY, JSON.stringify(persisted));
+  } catch {
+    // 저장 실패 시에도 메모리 상태의 Undo는 유지한다.
   }
 }
 
@@ -60,6 +149,9 @@ export interface NewCategoryInput {
 type Action =
   | { type: "SET_CURRENCY"; currency: Currency }
   | { type: "ADD_TXN"; input: NewTxnInput }
+  | { type: "UPDATE_TXN"; id: number; input: NewTxnInput }
+  | { type: "DELETE_TXN"; id: number }
+  | { type: "RESTORE_TXN"; txn: Txn; index: number }
   | { type: "SET_REFRESH_INTERVAL"; ms: number }
   | { type: "PRICE_FETCH_START" }
   | ({ type: "PRICE_FETCH_SETTLED" } & PriceFetchResult)
@@ -73,6 +165,12 @@ function reducer(state: State, action: Action): State {
       return { ...state, currency: action.currency };
     case "ADD_TXN":
       return applyAddTxn(state, action.input);
+    case "UPDATE_TXN":
+      return applyUpdateTxn(state, action.id, action.input);
+    case "DELETE_TXN":
+      return applyDeleteTxn(state, action.id);
+    case "RESTORE_TXN":
+      return applyRestoreTxn(state, action.txn, action.index);
     case "SET_REFRESH_INTERVAL":
       return { ...state, refreshIntervalMs: action.ms };
     case "PRICE_FETCH_START":
@@ -141,7 +239,8 @@ function applyAddTxn(state: State, input: NewTxnInput): State {
   const category = state.categories.find((c) => c.id === input.cat);
   const label = category?.label ?? input.cat;
   const signedAmount = input.isIncome ? Math.abs(input.amount) : -Math.abs(input.amount);
-  const nextId = state.data.txns.reduce((max, t) => Math.max(max, t.id), 0) + 1;
+  const currentMaxId = state.data.txns.reduce((max, t) => Math.max(max, t.id), 0);
+  const nextId = Math.max(currentMaxId + 1, Date.now());
   const newTxn: Txn = {
     id: nextId,
     title: input.title.trim() || label,
@@ -151,6 +250,7 @@ function applyAddTxn(state: State, input: NewTxnInput): State {
     date: input.date,
     amount: signedAmount,
     btcAt: state.data.btcKRW,
+    memo: input.memo,
   };
   return {
     ...state,
@@ -164,11 +264,92 @@ function applyAddTxn(state: State, input: NewTxnInput): State {
   };
 }
 
+function applyUpdateTxn(state: State, id: number, input: NewTxnInput): State {
+  const idx = state.data.txns.findIndex((t) => t.id === id);
+  if (idx === -1) return state;
+  const oldTxn = state.data.txns[idx];
+  const category = state.categories.find((c) => c.id === input.cat);
+  const label = category?.label ?? input.cat;
+  const signedAmount = input.isIncome ? Math.abs(input.amount) : -Math.abs(input.amount);
+  const updatedTxn: Txn = {
+    ...oldTxn,
+    title: input.title.trim() || label,
+    cat: input.cat,
+    catLabel: label,
+    time: formatTxnTime(input.date),
+    date: input.date,
+    amount: signedAmount,
+    memo: input.memo,
+    // btcAt은 의도적으로 보존 — 최초 기록 시점 시세라는 의미를 수정 후에도 유지
+  };
+  const nextTxns = state.data.txns.slice();
+  nextTxns[idx] = updatedTxn;
+  const oldIncome = oldTxn.amount > 0 ? oldTxn.amount : 0;
+  const oldExpense = oldTxn.amount < 0 ? -oldTxn.amount : 0;
+  const newIncome = signedAmount > 0 ? signedAmount : 0;
+  const newExpense = signedAmount < 0 ? -signedAmount : 0;
+  return {
+    ...state,
+    data: {
+      ...state.data,
+      txns: nextTxns,
+      balance: state.data.balance - oldTxn.amount + signedAmount,
+      income: state.data.income - oldIncome + newIncome,
+      expense: state.data.expense - oldExpense + newExpense,
+    },
+  };
+}
+
+function applyDeleteTxn(state: State, id: number): State {
+  const idx = state.data.txns.findIndex((t) => t.id === id);
+  if (idx === -1) return state;
+  const removed = state.data.txns[idx];
+  const nextTxns = state.data.txns.slice();
+  nextTxns.splice(idx, 1);
+  return {
+    ...state,
+    data: {
+      ...state.data,
+      txns: nextTxns,
+      balance: state.data.balance - removed.amount,
+      income: state.data.income - (removed.amount > 0 ? removed.amount : 0),
+      expense: state.data.expense - (removed.amount < 0 ? -removed.amount : 0),
+    },
+  };
+}
+
+function applyRestoreTxn(state: State, txn: Txn, index: number): State {
+  if (state.data.txns.some((t) => t.id === txn.id)) return state;
+  const nextTxns = state.data.txns.slice();
+  const insertAt = Math.max(0, Math.min(index, nextTxns.length));
+  nextTxns.splice(insertAt, 0, txn);
+  return {
+    ...state,
+    data: {
+      ...state.data,
+      txns: nextTxns,
+      balance: state.data.balance + txn.amount,
+      income: state.data.income + (txn.amount > 0 ? txn.amount : 0),
+      expense: state.data.expense + (txn.amount < 0 ? -txn.amount : 0),
+    },
+  };
+}
+
+export interface PendingUndo {
+  txn: Txn;
+  index: number;
+  expiresAt: number;
+}
+
 interface LedgerContextValue {
   currency: Currency;
   setCurrency: (c: Currency) => void;
   data: LedgerData;
   addTxn: (input: NewTxnInput) => void;
+  updateTxn: (id: number, input: NewTxnInput) => void;
+  deleteTxn: (id: number) => void;
+  pendingUndo: PendingUndo | null;
+  undoLastDelete: () => void;
   refreshIntervalMs: number;
   setRefreshIntervalMs: (ms: number) => void;
   priceStatus: PriceStatus;
@@ -186,9 +367,19 @@ interface LedgerContextValue {
 const LedgerContext = createContext<LedgerContextValue | null>(null);
 
 function buildInitialState(): State {
+  const persisted = loadTxnsState();
+  const data: LedgerData = persisted
+    ? {
+        ...DUMMY,
+        balance: persisted.balance,
+        income: persisted.income,
+        expense: persisted.expense,
+        txns: persisted.txns,
+      }
+    : DUMMY;
   return {
     currency: "KRW",
-    data: DUMMY,
+    data,
     refreshIntervalMs: 60_000,
     priceMeta: {
       status: "idle",
@@ -202,6 +393,8 @@ function buildInitialState(): State {
 
 export function LedgerProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, undefined, buildInitialState);
+  const [pendingUndo, setPendingUndo] = useState<PendingUndo | null>(() => loadPendingUndo());
+  const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchAndApplyPrices = useCallback(async () => {
     dispatch({ type: "PRICE_FETCH_START" });
@@ -219,13 +412,57 @@ export function LedgerProvider({ children }: { children: ReactNode }) {
     saveCategories(state.categories);
   }, [state.categories]);
 
+  useEffect(() => {
+    saveTxnsState({
+      balance: state.data.balance,
+      income: state.data.income,
+      expense: state.data.expense,
+      txns: state.data.txns,
+    });
+  }, [state.data.balance, state.data.income, state.data.expense, state.data.txns]);
+
+  useEffect(() => {
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    savePendingUndo(pendingUndo);
+    if (!pendingUndo) return;
+
+    const remainingMs = pendingUndo.expiresAt - Date.now();
+    if (remainingMs <= 0) {
+      setPendingUndo(null);
+      return;
+    }
+    undoTimerRef.current = setTimeout(() => setPendingUndo(null), remainingMs);
+    return () => {
+      if (undoTimerRef.current) clearTimeout(undoTimerRef.current);
+    };
+  }, [pendingUndo]);
+
   const value = useMemo<LedgerContextValue>(() => {
     const { liveFields } = state.priceMeta;
+
+    const deleteTxn = (id: number) => {
+      const idx = state.data.txns.findIndex((t) => t.id === id);
+      if (idx === -1) return;
+      const removed = state.data.txns[idx];
+      dispatch({ type: "DELETE_TXN", id });
+      setPendingUndo({ txn: removed, index: idx, expiresAt: Date.now() + UNDO_WINDOW_MS });
+    };
+
+    const undoLastDelete = () => {
+      if (!pendingUndo) return;
+      dispatch({ type: "RESTORE_TXN", txn: pendingUndo.txn, index: pendingUndo.index });
+      setPendingUndo(null);
+    };
+
     return {
       currency: state.currency,
       setCurrency: (c) => dispatch({ type: "SET_CURRENCY", currency: c }),
       data: state.data,
       addTxn: (input) => dispatch({ type: "ADD_TXN", input }),
+      updateTxn: (id, input) => dispatch({ type: "UPDATE_TXN", id, input }),
+      deleteTxn,
+      pendingUndo,
+      undoLastDelete,
       refreshIntervalMs: state.refreshIntervalMs,
       setRefreshIntervalMs: (ms) => dispatch({ type: "SET_REFRESH_INTERVAL", ms }),
       priceStatus: state.priceMeta.status,
@@ -250,7 +487,7 @@ export function LedgerProvider({ children }: { children: ReactNode }) {
       updateCategory: (id, patch) => dispatch({ type: "UPDATE_CATEGORY", id, patch }),
       deleteCategory: (id) => dispatch({ type: "DELETE_CATEGORY", id }),
     };
-  }, [state, fetchAndApplyPrices]);
+  }, [state, pendingUndo, fetchAndApplyPrices]);
 
   return <LedgerContext.Provider value={value}>{children}</LedgerContext.Provider>;
 }

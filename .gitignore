@@ -1,5 +1,6 @@
 node_modules/
 dist/
+.verify-swipe/
 
 # tsc -b / vite build incremental artifacts
 *.tsbuildinfo

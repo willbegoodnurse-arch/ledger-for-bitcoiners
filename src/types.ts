@@ -23,7 +23,8 @@ export interface Txn {
   time: string;
   date: string; // ISO datetime, used for sorting/period filtering
   amount: number; // KRW, negative = expense, positive = income
-  btcAt: number; // KRW/BTC rate at the time of entry, used for sat conversion
+  btcAt: number; // KRW/BTC rate at the time of entry, used for sat conversion (immutable after creation)
+  memo?: string;
 }
 
 export interface LedgerData {
