@@ -1,0 +1,19 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+
+:root {
+  --ldg-bg: #0a0a0a;
+  --ldg-card: rgba(20, 20, 20, 0.85);
+  --ldg-border: rgba(255, 255, 255, 0.08);
+  --ldg-orange: #f7931a;
+  --ldg-orange-glow: #ffd57a;
+  --ldg-bolt: #fff8d4;
+  --ldg-fg: #ffffff;
+  --ldg-fg-2: #d4d4d4;
+  --ldg-fg-3: #8a8a8a;
+  --ldg-fg-4: #6b6b6b;
+  --ldg-pos: #4ade80;
+  --ldg-neg: #f87171;
+  --ldg-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --ldg-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+    "Helvetica Neue", sans-serif;
+}

@@ -1,0 +1,33 @@
+.ldg-tabbar {
+  position: relative;
+  z-index: 6;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding: 8px 6px calc(10px + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--ldg-border);
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.ldg-tab {
+  background: none;
+  border: 0;
+  color: var(--ldg-fg-3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 2px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: color 0.18s, background 0.18s;
+}
+
+.ldg-tab.active {
+  color: var(--ldg-orange);
+  background: rgba(247, 147, 26, 0.1);
+}

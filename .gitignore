@@ -1,0 +1,10 @@
+node_modules/
+dist/
+
+# tsc -b / vite build incremental artifacts
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+
+# Claude Code local tool state
+.claude/
