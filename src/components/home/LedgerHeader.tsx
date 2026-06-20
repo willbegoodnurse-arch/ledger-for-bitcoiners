@@ -1,11 +1,11 @@
 import type { LedgerData } from "../../types";
 
-export default function LedgerHeader({ d }: { d: LedgerData }) {
+export default function LedgerHeader({ d, walletName }: { d: LedgerData; walletName: string }) {
   return (
     <div className="ldg-header">
       <div>
         <div className="ldg-month">{d.month}</div>
-        <div className="ldg-app-name">My Ledger</div>
+        <div className="ldg-app-name">{walletName}</div>
       </div>
       <div className="ldg-block">
         <span className="ldg-block-dot" />

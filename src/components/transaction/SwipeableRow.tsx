@@ -98,7 +98,7 @@ export default function SwipeableRow({
   };
 
   return (
-    <div className={`swipe-row ${menuOpen ? "menu-open" : ""}`}>
+    <div className={`swipe-row ${menuOpen ? "menu-open" : ""} ${offset !== 0 || dragging ? "swiping" : ""}`}>
       <button type="button" className="swipe-row-action swipe-row-action-edit" onClick={onEdit}>
         <span>수정</span>
       </button>
