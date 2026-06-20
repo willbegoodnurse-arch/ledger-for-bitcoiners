@@ -3,6 +3,7 @@ import "../../styles/ledger.css";
 import "../../styles/forms.css";
 import { useLedger } from "../../state/LedgerContext";
 import { formatUpdatedAt, getPriceTone } from "../../lib/priceStatus";
+import { loadWalletName, saveWalletName, DEFAULT_NAME, MAX_LENGTH } from "../../lib/walletName";
 import AppLockSettings from "../security/AppLockSettings";
 import CategoryManager from "./CategoryManager";
 import BackupRestoreCard from "./BackupRestoreCard";
@@ -29,6 +30,8 @@ export default function SettingsPage() {
   } = useLedger();
   const [unit, setUnit] = useState<(typeof UNITS)[number]>("BTC");
   const [source, setSource] = useState<(typeof SOURCES)[number]>("Upbit");
+  const [walletNameInput, setWalletNameInput] = useState(loadWalletName);
+  const [walletNameSaved, setWalletNameSaved] = useState(false);
 
   const priceTone = getPriceTone(priceStatus, isPriceFallback);
   const updatedAtText = formatUpdatedAt(priceUpdatedAt);
@@ -132,6 +135,60 @@ export default function SettingsPage() {
               </button>
             </div>
           </div>
+        </div>
+
+        <div className="ldg-card">
+          <div className="ldg-setting-row">
+            <div style={{ flex: 1 }}>
+              <div className="ldg-setting-label">지갑 이름</div>
+              <div className="ldg-setting-desc">홈 화면 제목에 표시됩니다.</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+            <input
+              type="text"
+              className="ldg-input"
+              value={walletNameInput}
+              maxLength={MAX_LENGTH}
+              onChange={(e) => {
+                setWalletNameInput(e.target.value);
+                setWalletNameSaved(false);
+              }}
+              placeholder={DEFAULT_NAME}
+              style={{ flex: 1, fontSize: 14, padding: "10px 12px" }}
+            />
+            <button
+              type="button"
+              className="ldg-submit-btn"
+              style={{ padding: "10px 14px", fontSize: 13 }}
+              onClick={() => {
+                const saved = saveWalletName(walletNameInput);
+                setWalletNameInput(saved);
+                document.title = saved;
+                setWalletNameSaved(true);
+                setTimeout(() => setWalletNameSaved(false), 2000);
+              }}
+            >
+              저장
+            </button>
+            <button
+              type="button"
+              className="ldg-submit-btn secondary"
+              style={{ padding: "10px 14px", fontSize: 13 }}
+              onClick={() => {
+                const saved = saveWalletName(DEFAULT_NAME);
+                setWalletNameInput(saved);
+                document.title = saved;
+                setWalletNameSaved(true);
+                setTimeout(() => setWalletNameSaved(false), 2000);
+              }}
+            >
+              초기화
+            </button>
+          </div>
+          {walletNameSaved && (
+            <div className="ldg-backup-status ok" style={{ marginTop: 8 }}>저장되었습니다.</div>
+          )}
         </div>
 
         <CategoryManager />

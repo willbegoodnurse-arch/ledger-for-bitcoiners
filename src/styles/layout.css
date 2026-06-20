@@ -149,7 +149,7 @@
   z-index: 100;
   display: grid;
   place-items: center;
-  padding: 24px;
+  padding: calc(var(--safe-top) + 24px) 24px calc(var(--safe-bottom) + 24px);
   background: #0a0a0a;
   color: var(--ldg-fg);
   font-family: var(--ldg-sans);

@@ -34,7 +34,9 @@
   height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 18px 16px 28px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  padding: calc(var(--safe-top) + 18px) 16px 28px;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -348,6 +350,9 @@
   position: relative;
   border-bottom: 0.5px solid var(--ldg-border);
   touch-action: pan-y;
+  overflow: hidden;
+  border-radius: 2px;
+  isolation: isolate;
 }
 .swipe-row.menu-open {
   z-index: 5;
@@ -368,6 +373,12 @@
   color: #fff;
   font-size: 13px;
   font-weight: 700;
+  visibility: hidden;
+  opacity: 0;
+}
+.swipe-row.swiping .swipe-row-action {
+  visibility: visible;
+  opacity: 1;
 }
 .swipe-row-action span {
   display: inline-block;
@@ -393,7 +404,7 @@
   padding: 10px 0;
   position: relative;
   z-index: 1;
-  background: var(--ldg-card);
+  background: #141414;
 }
 .swipe-row-content:not(.dragging) {
   transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
