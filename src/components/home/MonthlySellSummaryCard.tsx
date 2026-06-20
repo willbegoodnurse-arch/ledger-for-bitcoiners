@@ -1,21 +1,23 @@
 import { fmtKRW, fmtBtcValue, type BtcUnit } from "../../lib/format";
-import type { MonthSellSummary } from "../../lib/btcSellRecords";
-import type { BtcSellRecord } from "../../lib/btcSellRecords";
+import { getMonthLabel } from "../../lib/month";
+import type { MonthSellSummary, BtcSellRecord } from "../../lib/btcSellRecords";
 
 interface Props {
   summary: MonthSellSummary;
   records: BtcSellRecord[];
   unit: BtcUnit;
+  selectedMonth: string;
 }
 
-export default function MonthlySellSummaryCard({ summary, records, unit }: Props) {
+export default function MonthlySellSummaryCard({ summary, records, unit, selectedMonth }: Props) {
   if (summary.count === 0) return null;
 
+  const monthLabel = getMonthLabel(selectedMonth);
   const recentRecords = records.slice(0, 3);
 
   return (
     <div className="ldg-card">
-      <div className="ldg-label">이번 달 BTC 매도 반영</div>
+      <div className="ldg-label">{monthLabel} BTC 매도 반영</div>
       <div className="ldg-inout-main neg" style={{ marginTop: 6 }}>
         {fmtBtcValue(summary.totalBtcSold, unit)}
       </div>

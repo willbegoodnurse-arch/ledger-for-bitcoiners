@@ -1,16 +1,19 @@
 import type { SellResult } from "../../lib/sellCalculator";
 import { fmtKRW, fmtBtcValue, type BtcUnit } from "../../lib/format";
+import { getMonthLabel } from "../../lib/month";
 
 interface Props {
   result: SellResult;
   unit: BtcUnit;
+  selectedMonth: string;
   onConfirmSell?: () => void;
 }
 
-export default function SellNeededCard({ result, unit, onConfirmSell }: Props) {
+export default function SellNeededCard({ result, unit, selectedMonth, onConfirmSell }: Props) {
   const { deficitKrw, sellBtc, afterSellBtc, totalDeficitKrw, confirmedCoverageKrw } = result;
   const noSellNeeded = deficitKrw === 0;
   const hasConfirmed = confirmedCoverageKrw > 0;
+  const monthLabel = getMonthLabel(selectedMonth);
 
   return (
     <div className="ldg-card">
@@ -33,7 +36,7 @@ export default function SellNeededCard({ result, unit, onConfirmSell }: Props) {
             {fmtBtcValue(sellBtc, unit)}
           </div>
           <div className="ldg-balance-sub">
-            남은 부족분 {fmtKRW(deficitKrw)} 기준
+            {monthLabel} 남은 부족분 {fmtKRW(deficitKrw)} 기준
           </div>
           {hasConfirmed && (
             <div className="ldg-balance-sub" style={{ marginTop: 4 }}>

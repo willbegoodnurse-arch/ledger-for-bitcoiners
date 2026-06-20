@@ -3,19 +3,19 @@ import type { SellResult } from "../../lib/sellCalculator";
 import type { BtcUnit } from "../../lib/format";
 import { addBtcSellRecord } from "../../lib/btcSellRecords";
 import { getHeldBtc, setHeldBtc } from "../../lib/heldBtc";
-import { getCurrentMonthKey, getCurrentMonthLabel } from "../../lib/month";
+import { getMonthLabel } from "../../lib/month";
 
 interface Props {
   result: SellResult;
   btcKrw: number;
   unit: BtcUnit;
+  selectedMonth: string;
   onClose: () => void;
   onSaved: () => void;
 }
 
-export default function SellConfirmModal({ result, btcKrw, unit, onClose, onSaved }: Props) {
-  const monthKey = getCurrentMonthKey();
-  const monthLabel = getCurrentMonthLabel();
+export default function SellConfirmModal({ result, btcKrw, unit, selectedMonth, onClose, onSaved }: Props) {
+  const monthLabel = getMonthLabel(selectedMonth);
 
   const [btcKrwInput, setBtcKrwInput] = useState(String(btcKrw));
   const [sellInput, setSellInput] = useState(() => {
@@ -61,7 +61,7 @@ export default function SellConfirmModal({ result, btcKrw, unit, onClose, onSave
     const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
     addBtcSellRecord({
-      month: monthKey,
+      month: selectedMonth,
       date: dateStr,
       btcSold,
       satsSold,

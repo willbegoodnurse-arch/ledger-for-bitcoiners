@@ -63,12 +63,12 @@ assert.doesNotMatch(backupSrc, /myledger\.appLock\.v1/, "appLock is not in backu
 const tabbarCss = readFileSync("src/styles/tabbar.css", "utf8");
 assert.match(tabbarCss, /text-decoration:\s*none/, "tab has text-decoration: none");
 
-// 14. Home month display uses current month
+// 14. Home month display uses month utilities
 const headerSrc = readFileSync("src/components/home/LedgerHeader.tsx", "utf8");
-assert.match(headerSrc, /getCurrentMonthLabel/, "LedgerHeader uses getCurrentMonthLabel");
+assert.match(headerSrc, /getMonthLabel|getCurrentMonthLabel/, "LedgerHeader uses month label utility");
 const monthSrc = readFileSync("src/lib/month.ts", "utf8");
 assert.match(monthSrc, /getCurrentMonthLabel/, "month.ts exports getCurrentMonthLabel");
 assert.match(monthSrc, /getCurrentMonthKey/, "month.ts exports getCurrentMonthKey");
-assert.match(monthSrc, /new Date/, "getCurrentMonthLabel uses current date");
+assert.match(monthSrc, /new Date/, "month utilities use current date");
 
 console.log("verify:sell-records passed");
