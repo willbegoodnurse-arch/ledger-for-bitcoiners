@@ -5,7 +5,13 @@ import { loadWalletName } from "../../lib/walletName";
 import { getHeldBtc } from "../../lib/heldBtc";
 import { loadBtcUnit, type BtcUnit } from "../../lib/format";
 import { calculateMonthlyLivingCashflow, calculateSellNeeded } from "../../lib/sellCalculator";
-import { getCurrentMonthKey } from "../../lib/month";
+import {
+  getCurrentMonthKey,
+  getPreviousMonthKey,
+  getNextMonthKey,
+  getYearFromMonthKey,
+  monthKeyToAnchorDate,
+} from "../../lib/month";
 import {
   summarizeBtcSellRecordsByMonth,
   summarizeBtcSellRecordsByYear,
@@ -30,6 +36,7 @@ export default function HomePage() {
   const [walletName, setWalletName] = useState(loadWalletName);
   const [heldBtc, setHeldBtc] = useState(getHeldBtc);
   const [btcUnit, setBtcUnit] = useState<BtcUnit>(loadBtcUnit);
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthKey);
   const [sellModalOpen, setSellModalOpen] = useState(false);
   const [, setRefreshTick] = useState(0);
 
@@ -37,7 +44,6 @@ export default function HomePage() {
     document.title = walletName;
   }, [walletName]);
 
-  // Re-read wallet name, held BTC, and btcUnit when the page becomes visible
   useEffect(() => {
     const refresh = () => {
       setWalletName(loadWalletName());
@@ -55,16 +61,17 @@ export default function HomePage() {
     };
   }, []);
 
-  const monthKey = getCurrentMonthKey();
-  const yearKey = monthKey.split("-")[0];
+  const yearKey = getYearFromMonthKey(selectedMonth);
+  const anchorDate = monthKeyToAnchorDate(selectedMonth);
 
-  const monthlySellSummary = summarizeBtcSellRecordsByMonth(monthKey);
+  const monthlySellSummary = summarizeBtcSellRecordsByMonth(selectedMonth);
   const yearlySellSummary = summarizeBtcSellRecordsByYear(yearKey);
-  const monthRecords = listBtcSellRecordsByMonth(monthKey);
+  const monthRecords = listBtcSellRecordsByMonth(selectedMonth);
 
   const { incomeKrw, expenseKrw } = calculateMonthlyLivingCashflow(
     data.txns,
     categoriesById,
+    anchorDate,
   );
   const sellResult = calculateSellNeeded({
     incomeKrw,
@@ -85,17 +92,30 @@ export default function HomePage() {
       <div className="ldg-screen">
         <div className="ldg-content">
           <Slogan />
-          <LedgerHeader d={data} walletName={walletName} />
+          <LedgerHeader
+            d={data}
+            walletName={walletName}
+            selectedMonth={selectedMonth}
+            onPrevMonth={() => setSelectedMonth((m) => getPreviousMonthKey(m))}
+            onNextMonth={() => setSelectedMonth((m) => getNextMonthKey(m))}
+            onResetMonth={() => setSelectedMonth(getCurrentMonthKey())}
+          />
           <CurrencyToggle value={currency} onChange={setCurrency} />
           <BalanceCard d={data} heldBtc={heldBtc} unit={btcUnit} />
           <InOutCards d={data} currency={currency} />
           <SellNeededCard
             result={sellResult}
             unit={btcUnit}
+            selectedMonth={selectedMonth}
             onConfirmSell={sellResult.deficitKrw > 0 ? () => setSellModalOpen(true) : undefined}
           />
-          <MonthlySellSummaryCard summary={monthlySellSummary} records={monthRecords} unit={btcUnit} />
-          <YearlySellSummaryCard summary={yearlySellSummary} unit={btcUnit} />
+          <MonthlySellSummaryCard
+            summary={monthlySellSummary}
+            records={monthRecords}
+            unit={btcUnit}
+            selectedMonth={selectedMonth}
+          />
+          <YearlySellSummaryCard summary={yearlySellSummary} unit={btcUnit} year={yearKey} />
           <PriceWidget d={data} />
           <ChartCard />
           <TxnsCard d={data} currency={currency} />
@@ -106,6 +126,7 @@ export default function HomePage() {
           result={sellResult}
           btcKrw={data.btcKRW}
           unit={btcUnit}
+          selectedMonth={selectedMonth}
           onClose={() => setSellModalOpen(false)}
           onSaved={handleSellSaved}
         />

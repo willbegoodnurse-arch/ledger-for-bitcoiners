@@ -1,4 +1,4 @@
-/** Month utility functions for current-month display and future month navigation */
+/** Month utility functions for current-month display and month navigation */
 
 /** "YYYY-MM" key for today */
 export function getCurrentMonthKey(): string {
@@ -25,4 +25,32 @@ export function getMonthLabel(monthKey: string): string {
 /** "YYYY" from a "YYYY-MM" key */
 export function getYearFromMonthKey(monthKey: string): string {
   return monthKey.split("-")[0];
+}
+
+/** Add delta months to a "YYYY-MM" key and return a new "YYYY-MM" key */
+export function addMonthsToMonthKey(monthKey: string, delta: number): string {
+  const [y, m] = monthKey.split("-").map(Number);
+  const d = new Date(y, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/** Previous month key */
+export function getPreviousMonthKey(monthKey: string): string {
+  return addMonthsToMonthKey(monthKey, -1);
+}
+
+/** Next month key */
+export function getNextMonthKey(monthKey: string): string {
+  return addMonthsToMonthKey(monthKey, 1);
+}
+
+/** Check if a monthKey is the current month */
+export function isCurrentMonth(monthKey: string): boolean {
+  return monthKey === getCurrentMonthKey();
+}
+
+/** Parse "YYYY-MM" into a Date (1st of that month) for anchorDate usage */
+export function monthKeyToAnchorDate(monthKey: string): Date {
+  const [y, m] = monthKey.split("-").map(Number);
+  return new Date(y, m - 1, 15); // mid-month avoids timezone edge cases
 }
