@@ -3,6 +3,7 @@ import "../../styles/ledger.css";
 import "../../styles/forms.css";
 import { useLedger } from "../../state/LedgerContext";
 import { formatUpdatedAt, getPriceTone } from "../../lib/priceStatus";
+import AppLockSettings from "../security/AppLockSettings";
 import CategoryManager from "./CategoryManager";
 import BackupRestoreCard from "./BackupRestoreCard";
 
@@ -44,7 +45,7 @@ export default function SettingsPage() {
     <div className="ldg-screen">
       <div className="ldg-content">
         <div className="ldg-page-title">설정</div>
-        <div className="ldg-page-sub">표시 방식, 시세, 카테고리, 백업을 관리합니다.</div>
+        <div className="ldg-page-sub">표시 방식, 시세, 카테고리, 백업, 로컬 잠금을 관리합니다.</div>
 
         <div className="ldg-card">
           <div className="ldg-setting-row">
@@ -64,7 +65,7 @@ export default function SettingsPage() {
           <div className="ldg-setting-row">
             <div>
               <div className="ldg-setting-label">표시 단위</div>
-              <div className="ldg-setting-desc">소액 환산 시 BTC/sats 단위</div>
+              <div className="ldg-setting-desc">금액 환산 시 BTC/sats 단위</div>
             </div>
             <div className="ldg-radio-group">
               {UNITS.map((u) => (
@@ -113,7 +114,7 @@ export default function SettingsPage() {
               <div className="ldg-setting-label">시세 상태</div>
               <div className="ldg-setting-desc">
                 {statusText}
-                {priceError ? ` (${priceError} 연결 실패)` : ""}
+                {priceError ? ` (${priceError})` : ""}
               </div>
             </div>
             <button type="button" className="ldg-link" onClick={refreshPrices}>
@@ -135,6 +136,7 @@ export default function SettingsPage() {
 
         <CategoryManager />
         <BackupRestoreCard />
+        <AppLockSettings />
       </div>
     </div>
   );
