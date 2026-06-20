@@ -5,6 +5,7 @@ import { useLedger } from "../../state/LedgerContext";
 import { formatUpdatedAt, getPriceTone } from "../../lib/priceStatus";
 import AppLockSettings from "../security/AppLockSettings";
 import CategoryManager from "./CategoryManager";
+import BackupRestoreCard from "./BackupRestoreCard";
 
 const UNITS = ["BTC", "sats"] as const;
 const SOURCES = ["Upbit", "Binance"] as const;
@@ -18,7 +19,6 @@ export default function SettingsPage() {
   const {
     currency,
     setCurrency,
-    data,
     refreshIntervalMs,
     setRefreshIntervalMs,
     priceStatus,
@@ -36,26 +36,16 @@ export default function SettingsPage() {
     priceTone === "loading"
       ? "시세를 불러오는 중..."
       : priceTone === "offline"
-      ? "시세 연동 실패 후 이전 시세를 사용 중"
+      ? "시세 연동 실패, 더미 시세 사용 중"
       : priceTone === "stale"
-      ? `일부 시세 갱신 실패. ${updatedAtText} 값 사용 중`
+      ? `일부 시세 갱신 실패, ${updatedAtText} 값 유지 중`
       : `마지막 갱신 ${updatedAtText}`;
-
-  const handleExport = () => {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "my-ledger-backup.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  };
 
   return (
     <div className="ldg-screen">
       <div className="ldg-content">
         <div className="ldg-page-title">설정</div>
-        <div className="ldg-page-sub">표시 방식, 시세, 카테고리, 로컬 잠금을 관리합니다.</div>
+        <div className="ldg-page-sub">표시 방식, 시세, 카테고리, 백업, 로컬 잠금을 관리합니다.</div>
 
         <div className="ldg-card">
           <div className="ldg-setting-row">
@@ -79,7 +69,7 @@ export default function SettingsPage() {
             </div>
             <div className="ldg-radio-group">
               {UNITS.map((u) => (
-                <button key={u} type="button" className={unit === u ? "on" : ""} onClick={() => setUnit(u)}>
+                <button type="button" key={u} className={unit === u ? "on" : ""} onClick={() => setUnit(u)}>
                   {u}
                 </button>
               ))}
@@ -91,11 +81,11 @@ export default function SettingsPage() {
           <div className="ldg-setting-row">
             <div>
               <div className="ldg-setting-label">시세 소스</div>
-              <div className="ldg-setting-desc">현재 시세 평가 기준</div>
+              <div className="ldg-setting-desc">현재 시세 재평가 기준</div>
             </div>
             <div className="ldg-radio-group">
               {SOURCES.map((s) => (
-                <button key={s} type="button" className={source === s ? "on" : ""} onClick={() => setSource(s)}>
+                <button type="button" key={s} className={source === s ? "on" : ""} onClick={() => setSource(s)}>
                   {s}
                 </button>
               ))}
@@ -109,8 +99,8 @@ export default function SettingsPage() {
             <div className="ldg-radio-group">
               {INTERVALS.map((i) => (
                 <button
-                  key={i.label}
                   type="button"
+                  key={i.label}
                   className={refreshIntervalMs === i.ms ? "on" : ""}
                   onClick={() => setRefreshIntervalMs(i.ms)}
                 >
@@ -127,7 +117,7 @@ export default function SettingsPage() {
                 {priceError ? ` (${priceError})` : ""}
               </div>
             </div>
-            <button className="ldg-link" type="button" onClick={refreshPrices}>
+            <button type="button" className="ldg-link" onClick={refreshPrices}>
               지금 갱신
             </button>
           </div>
@@ -137,7 +127,7 @@ export default function SettingsPage() {
               <div className="ldg-setting-desc">다크 모드 고정</div>
             </div>
             <div className="ldg-radio-group">
-              <button className="on" type="button">
+              <button type="button" className="on">
                 Dark
               </button>
             </div>
@@ -145,20 +135,8 @@ export default function SettingsPage() {
         </div>
 
         <CategoryManager />
+        <BackupRestoreCard />
         <AppLockSettings />
-
-        <div className="ldg-card">
-          <div className="ldg-label" style={{ marginBottom: 10 }}>
-            데이터 내보내기
-          </div>
-          <div className="ldg-setting-desc" style={{ marginBottom: 12 }}>
-            현재 브라우저의 가계부 데이터를 JSON 파일로 내려받습니다. PIN과 앱 잠금 설정은 포함하지
-            않습니다.
-          </div>
-          <button className="ldg-submit-btn" type="button" onClick={handleExport}>
-            JSON으로 내보내기
-          </button>
-        </div>
       </div>
     </div>
   );

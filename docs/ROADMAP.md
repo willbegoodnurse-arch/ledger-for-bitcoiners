@@ -57,11 +57,22 @@
 ## Phase 5: 배포/백업/복원
 
 - Netlify/Vercel 배포 설정
+- SPA fallback 설정
+- 실기기 검증 체크리스트
 - 실제 모바일 URL 테스트
-- QR 접속 테스트
+- QR 접속 테스트 안내
 - 배포 README 정리
 - 백업/복원 UX
-- localStorage-only 리스크 완화
+- localStorage-only 데이터 유실 리스크 완화
+
+### Phase 5 완료 범위
+
+- Netlify/Vercel 배포 설정
+- SPA fallback 설정
+- 실기기 검증 체크리스트
+- QR 접속 테스트 안내
+- 백업/복원 UX
+- localStorage-only 데이터 유실 리스크 완화
 
 ## Phase 6: 프라이버시, 앱 잠금, 브랜딩 개선
 

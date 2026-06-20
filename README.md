@@ -19,7 +19,7 @@ My Ledger는 한국 비트코이너가 원화 수입/지출을 기록하고, 해
 - localStorage
 - 모바일 우선 PWA
 
-현재 MVP는 React Native 앱이 아니라 **Vite + React + TypeScript + localStorage 기반 모바일 우선 PWA**입니다.
+이 프로젝트는 React Native 앱이 아닙니다. 서버, 로그인, 은행/거래소 자동 연동 없이 localStorage-first PWA MVP로 갑니다.
 
 ## 현재 MVP 범위
 
@@ -32,6 +32,7 @@ My Ledger는 한국 비트코이너가 원화 수입/지출을 기록하고, 해
 - 통계
 - 자산/포트폴리오 계산
 - PWA 설치와 기본 오프라인 앱 shell
+- 수동 백업/복원
 - 로컬 앱 잠금
 
 ## MVP 제외 범위
@@ -43,7 +44,7 @@ My Ledger는 한국 비트코이너가 원화 수입/지출을 기록하고, 해
 - 알트코인
 - 앱스토어 출시
 - React Native 전환
-- 클라우드 동기화
+- 자동 클라우드 백업
 - 시드/개인키/거래소 API 키 저장
 
 ## 로컬 실행
@@ -54,7 +55,20 @@ npm run dev
 npm run build
 ```
 
-## PWA 설치
+## 검증
+
+```bash
+npm run build
+npm run verify:persist
+npm run verify:calc
+npm run verify:pwa
+npm run verify:backup
+npm run verify:deploy
+npm run verify:security
+npm run verify:branding
+```
+
+## PWA 설치 방법
 
 이 앱은 앱스토어 앱이 아니라 모바일 브라우저에서 설치 가능한 PWA입니다.
 
@@ -69,6 +83,15 @@ npm run build
 - 시세 API는 온라인 상태에서만 갱신됩니다.
 - 외부 Upbit/Binance/FX API 응답은 service worker가 강하게 캐싱하지 않습니다.
 
+## 백업/복원
+
+이 앱은 localStorage-only MVP입니다. 앱 삭제, 브라우저 데이터 삭제, 기기 변경, 브라우저 변경 시 데이터가 사라질 수 있습니다.
+
+- 설정 화면에서 정기적으로 백업 파일을 다운로드하세요.
+- 백업 파일에는 거래/카테고리 데이터가 들어갈 수 있으므로 개인 기기에 안전하게 보관하세요.
+- 복원은 현재 브라우저의 거래/카테고리 데이터를 덮어쓰므로 확인 후 진행하세요.
+- My Ledger는 비트코인 시드, 개인키, 거래소 API 키, 은행 인증 정보를 저장하거나 백업하지 않습니다.
+
 ## 로컬 앱 잠금
 
 설정 화면에서 4~6자리 PIN 기반 로컬 앱 잠금을 켤 수 있습니다.
@@ -78,37 +101,18 @@ npm run build
 - 서버 인증, 계정 복구, 완전한 localStorage 암호화가 아닙니다.
 - PIN을 잊으면 브라우저 데이터 초기화가 필요할 수 있으며, 백업이 없으면 데이터가 사라질 수 있습니다.
 
-자세한 내용은 [SECURITY.md](docs/SECURITY.md)를 기준으로 합니다.
+자세한 내용은 [SECURITY.md](docs/SECURITY.md)를 참고하세요.
 
-## 데이터 보관 주의
+## 배포
 
-이 앱은 localStorage-first PWA입니다. 앱 삭제, 브라우저 데이터 삭제, 기기 변경 시 데이터가 사라질 수 있습니다. 백업 기능이 있는 브랜치에서는 정기적으로 백업 JSON을 내려받아 개인 기기에 안전하게 보관해야 합니다.
+정적 웹앱으로 빌드해 Netlify 또는 Vercel에 배포합니다.
 
-백업 파일에는 개인 금융 기록이 들어갈 수 있습니다. 비트코인 시드, 개인키, 거래소 API 키, 은행 정보는 절대 앱에 저장하지 마세요.
+- Build command: `npm run build`
+- Publish/output directory: `dist`
+- SPA fallback 필요
+- HTTPS 필요
 
-## 검증
-
-```bash
-npm run build
-npm run verify:persist
-npm run verify:calc
-npm run verify:pwa
-npm run verify:security
-npm run verify:branding
-```
-
-PWA 수동 확인은 production build 기준으로 진행합니다.
-
-```bash
-npm run build
-npm run preview
-```
-
-브라우저 DevTools의 Application 탭에서 Manifest와 Service Worker를 확인하고, 오프라인 모드에서 새로고침해 앱 shell이 뜨는지 확인합니다.
-
-## 배포 방향
-
-정적 웹앱으로 빌드해 Netlify 또는 Vercel에 배포하는 것을 우선합니다. 서버가 필요한 기능은 MVP 이후 동기화, 로그인, 백업 요구가 명확해질 때만 검토합니다.
+자세한 배포 절차와 모바일/QR/PWA 확인 체크리스트는 [DEPLOYMENT.md](docs/DEPLOYMENT.md)를 참고하세요.
 
 ## 향후 페이즈
 
@@ -116,7 +120,7 @@ npm run preview
 - Phase 2: 거래 데이터 안정화
 - Phase 3: 통계/자산 계산 안정화
 - Phase 4: PWA화
-- Phase 5: 배포/백업/복원
+- Phase 5: 배포/검증과 백업/복원
 - Phase 6: 프라이버시, 앱 잠금, 가독성, 아이콘 개선
 - Phase 7 후보: localStorage 암호화, 클라우드 동기화 검토, 접근성 개선
 
