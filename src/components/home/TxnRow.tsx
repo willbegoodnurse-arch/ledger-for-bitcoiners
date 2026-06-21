@@ -1,5 +1,5 @@
 import type { Currency, Txn } from "../../types";
-import { fmtKRW, krwToBtc, krwToSats } from "../../lib/format";
+import { fmtKRW, krwToBtc, krwToSats, formatCategoryLabel } from "../../lib/format";
 import CategoryIcon from "./CategoryIcon";
 
 export default function TxnRow({ t, currency, btcKRW }: { t: Txn; currency: Currency; btcKRW: number }) {
@@ -19,7 +19,7 @@ export default function TxnRow({ t, currency, btcKRW }: { t: Txn; currency: Curr
       <div className="ldg-txn-mid">
         <div className="ldg-txn-title">{t.title}</div>
         <div className="ldg-txn-meta">
-          {t.catLabel} · {t.time}
+          {formatCategoryLabel(t.catLabel)} · {t.time}
         </div>
       </div>
       <div className="ldg-txn-amt">

@@ -12,7 +12,7 @@ import {
 import type { CategoryDef, Currency, LedgerData, NewTxnInput, Txn } from "../types";
 import { DUMMY } from "../lib/dummyData";
 import { BUILT_IN_CATEGORIES, DEFAULT_FALLBACK, PROTECTED_IDS } from "../lib/categories";
-import { formatTxnTime } from "../lib/format";
+import { formatTxnTime, formatCategoryLabel } from "../lib/format";
 import { fetchLivePrices, type PriceFetchResult } from "../lib/priceApi";
 
 export type PriceStatus = "idle" | "loading" | "ok" | "error";
@@ -187,7 +187,7 @@ function normalizeCategories(value: unknown): CategoryDef[] | null {
     if (builtIn && PROTECTED_IDS.has(category.id)) {
       byId.set(category.id, {
         ...builtIn,
-        label: category.label.trim() || builtIn.label,
+        label: formatCategoryLabel(category.label.trim() || builtIn.label),
         fg: category.fg,
         icon: category.icon,
         protected: true,

@@ -38,6 +38,7 @@ export default function HomePage() {
   const [btcUnit, setBtcUnit] = useState<BtcUnit>(loadBtcUnit);
   const [selectedMonth, setSelectedMonth] = useState(getCurrentMonthKey);
   const [sellModalOpen, setSellModalOpen] = useState(false);
+  const [sellSavedMessage, setSellSavedMessage] = useState<string | null>(null);
   const [, setRefreshTick] = useState(0);
 
   useEffect(() => {
@@ -84,7 +85,14 @@ export default function HomePage() {
   const handleSellSaved = useCallback(() => {
     setHeldBtc(getHeldBtc());
     setRefreshTick((k) => k + 1);
+    setSellSavedMessage("BTC 판매 기록이 저장되었습니다. 보유 BTC가 업데이트되었습니다.");
   }, []);
+
+  useEffect(() => {
+    if (!sellSavedMessage) return;
+    const id = setTimeout(() => setSellSavedMessage(null), 3000);
+    return () => clearTimeout(id);
+  }, [sellSavedMessage]);
 
   return (
     <div className="ldg-page-root">
@@ -130,6 +138,11 @@ export default function HomePage() {
           onClose={() => setSellModalOpen(false)}
           onSaved={handleSellSaved}
         />
+      )}
+      {sellSavedMessage && (
+        <div className="ldg-toast">
+          <span>{sellSavedMessage}</span>
+        </div>
       )}
     </div>
   );
