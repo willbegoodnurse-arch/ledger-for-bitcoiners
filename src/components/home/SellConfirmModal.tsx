@@ -44,14 +44,14 @@ export default function SellConfirmModal({ result, btcKrw, unit, selectedMonth, 
     if (unit === "sats") {
       const satsVal = parseInt(sellInput, 10);
       if (!Number.isFinite(satsVal) || satsVal <= 0) {
-        setError("매도 sats가 올바르지 않습니다.");
+        setError("판매 sats가 올바르지 않습니다.");
         return;
       }
       btcSold = satsVal / 1e8;
     } else {
       btcSold = parseFloat(sellInput);
       if (!Number.isFinite(btcSold) || btcSold <= 0) {
-        setError("매도 BTC가 올바르지 않습니다.");
+        setError("판매 BTC가 올바르지 않습니다.");
         return;
       }
     }
@@ -84,7 +84,7 @@ export default function SellConfirmModal({ result, btcKrw, unit, selectedMonth, 
   return (
     <div className="ldg-modal-backdrop" onClick={onClose}>
       <div className="ldg-modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="ldg-modal-title">BTC 매도 반영</div>
+        <div className="ldg-modal-title">BTC 판매 반영</div>
 
         <div className="ldg-modal-field">
           <label className="ldg-modal-label">기준 월</label>
@@ -92,7 +92,7 @@ export default function SellConfirmModal({ result, btcKrw, unit, selectedMonth, 
         </div>
 
         <div className="ldg-modal-field">
-          <label className="ldg-modal-label">매도 시점 BTC/KRW</label>
+          <label className="ldg-modal-label">판매 시점 BTC/KRW</label>
           <input
             type="text"
             inputMode="numeric"
@@ -104,7 +104,7 @@ export default function SellConfirmModal({ result, btcKrw, unit, selectedMonth, 
 
         <div className="ldg-modal-field">
           <label className="ldg-modal-label">
-            매도 {unit === "sats" ? "sats" : "BTC"}
+            판매 {unit === "sats" ? "sats" : "BTC"}
           </label>
           <input
             type="text"

@@ -30,7 +30,7 @@ export default function AssetsPage() {
     <div className="ldg-screen">
       <div className="ldg-content">
         <div className="ldg-page-title">자산</div>
-        <div className="ldg-page-sub">BTC 매수/매도 거래를 기준으로 보유량과 평가액을 계산합니다.</div>
+        <div className="ldg-page-sub">BTC 구매/판매 거래를 기준으로 보유량과 평가액을 계산합니다.</div>
 
         <div className="ldg-card ldg-balance">
           <div className="ldg-label">보유 BTC 평가액</div>
@@ -57,7 +57,7 @@ export default function AssetsPage() {
             <div className="ldg-inout-main">
               {portfolio.averageCostKrwPerBtc > 0 ? fmtKRW(Math.round(portfolio.averageCostKrwPerBtc)) : "-"}
             </div>
-            <div className="ldg-inout-sub">총 매수 {fmtKRW(portfolio.totalBuyKrw)}</div>
+            <div className="ldg-inout-sub">총 구매 {fmtKRW(portfolio.totalBuyKrw)}</div>
           </div>
         </div>
 
@@ -66,7 +66,7 @@ export default function AssetsPage() {
             BTC 포지션
           </div>
           <div className="ldg-page-sub">
-            현재가 {fmtKRW(portfolio.currentPrice)} · 총 매도 {fmtKRW(portfolio.totalSellKrw)} · 순투입금{" "}
+            현재가 {fmtKRW(portfolio.currentPrice)} · 총 판매 {fmtKRW(portfolio.totalSellKrw)} · 순투입금{" "}
             {fmtKRW(portfolio.netInvestedKrw)}
           </div>
         </div>
@@ -96,7 +96,7 @@ export default function AssetsPage() {
               <circle cx={pointCoords[0].x} cy={pointCoords[0].y} r="4" fill="#F7931A" />
             </svg>
           ) : (
-            <div className="ldg-page-sub">아직 BTC 매수/매도 거래가 없습니다.</div>
+            <div className="ldg-page-sub">아직 BTC 구매/판매 거래가 없습니다.</div>
           )}
         </div>
       </div>

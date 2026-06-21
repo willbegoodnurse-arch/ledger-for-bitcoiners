@@ -17,7 +17,7 @@ export default function MonthlySellSummaryCard({ summary, records, unit, selecte
 
   return (
     <div className="ldg-card">
-      <div className="ldg-label">{monthLabel} BTC 매도 반영</div>
+      <div className="ldg-label">{monthLabel} BTC 판매 반영</div>
       <div className="ldg-inout-main neg" style={{ marginTop: 6 }}>
         {fmtBtcValue(summary.totalBtcSold, unit)}
       </div>

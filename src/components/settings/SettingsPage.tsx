@@ -196,7 +196,7 @@ export default function SettingsPage() {
         <div className="ldg-card">
           <div className="ldg-setting-label">보유 BTC</div>
           <div className="ldg-setting-desc" style={{ marginBottom: 10 }}>
-            BTC 보유량은 메인 화면과 팔아야 할 BTC 계산에 사용됩니다.
+            BTC 보유량은 메인 화면과 판매 필요 BTC 계산에 사용됩니다.
           </div>
           <div className="ldg-wallet-name-form">
             <input

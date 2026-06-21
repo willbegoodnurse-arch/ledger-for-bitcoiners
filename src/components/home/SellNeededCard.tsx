@@ -17,13 +17,13 @@ export default function SellNeededCard({ result, unit, selectedMonth, onConfirmS
 
   return (
     <div className="ldg-card">
-      <div className="ldg-label">팔아야 할 BTC</div>
+      <div className="ldg-label">판매 필요 BTC</div>
       {noSellNeeded ? (
         <>
           <div className="ldg-inout-main pos" style={{ marginTop: 6 }}>
             {fmtBtcValue(0, unit)}
           </div>
-          <div className="ldg-balance-sub">매도 필요 없음</div>
+          <div className="ldg-balance-sub">판매 필요 없음</div>
           {hasConfirmed && (
             <div className="ldg-balance-sub" style={{ marginTop: 4 }}>
               이미 반영 {fmtKRW(confirmedCoverageKrw)}
@@ -44,7 +44,7 @@ export default function SellNeededCard({ result, unit, selectedMonth, onConfirmS
             </div>
           )}
           <div style={{ marginTop: 8, borderTop: "0.5px solid var(--ldg-border)", paddingTop: 8 }}>
-            <div className="ldg-tiny">매도 후 보유 BTC</div>
+            <div className="ldg-tiny">판매 후 보유 BTC</div>
             <div className="ldg-price-val" style={{ marginTop: 2 }}>
               {fmtBtcValue(afterSellBtc, unit)}
             </div>
@@ -56,7 +56,7 @@ export default function SellNeededCard({ result, unit, selectedMonth, onConfirmS
               style={{ marginTop: 12 }}
               onClick={onConfirmSell}
             >
-              BTC 매도 반영
+              BTC 판매 반영
             </button>
           )}
         </>
