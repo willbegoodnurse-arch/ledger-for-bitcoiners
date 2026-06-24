@@ -28,9 +28,10 @@ import MonthlySellSummaryCard from "./MonthlySellSummaryCard";
 import YearlySellSummaryCard from "./YearlySellSummaryCard";
 import PriceWidget from "./PriceWidget";
 import TxnsCard from "./TxnsCard";
+import RecurringPendingCard from "./RecurringPendingCard";
 
 export default function HomePage() {
-  const { currency, setCurrency, data, categoriesById } = useLedger();
+  const { currency, setCurrency, data, categoriesById, addTxn } = useLedger();
   const [walletName, setWalletName] = useState(loadWalletName);
   const [heldBtc, setHeldBtc] = useState(getHeldBtc);
   const [btcUnit, setBtcUnit] = useState<BtcUnit>(loadBtcUnit);
@@ -127,7 +128,8 @@ export default function HomePage() {
             <MonthSelector selectedMonth={selectedMonth} onChangeMonth={setSelectedMonth} label={period.label} />
             <div className="ldg-settlement-range-label">{period.rangeLabel}</div>
           </div>
-          <InOutCards d={data} currency={currency} />
+          <InOutCards d={data} currency={currency} netKrw={sellResult.netKrw} />
+          <RecurringPendingCard selectedMonth={selectedMonth} period={period} addTxn={addTxn} />
           <SellNeededCard
             result={sellResult}
             unit={btcUnit}
