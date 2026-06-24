@@ -127,7 +127,7 @@ export default function HomePage() {
             <MonthSelector selectedMonth={selectedMonth} onChangeMonth={setSelectedMonth} label={period.label} />
             <div className="ldg-settlement-range-label">{period.rangeLabel}</div>
           </div>
-          <InOutCards d={data} currency={currency} />
+          <InOutCards d={data} currency={currency} netKrw={sellResult.netKrw} />
           <SellNeededCard
             result={sellResult}
             unit={btcUnit}

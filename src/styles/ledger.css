@@ -326,6 +326,25 @@
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+.ldg-net-card {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.ldg-net-value {
+  flex-shrink: 0;
+  font-size: 19px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+.ldg-net-value.pos {
+  color: var(--ldg-pos);
+}
+.ldg-net-value.neg {
+  color: var(--ldg-neg);
+}
 .ldg-inout-main {
   font-size: 17px;
   font-weight: 600;
@@ -345,6 +364,33 @@
   font-size: 11px;
   color: var(--ldg-fg-4);
   margin-top: 2px;
+}
+.ldg-sell-deficit-label {
+  margin-top: 8px;
+  color: var(--ldg-fg-4);
+  font-size: 12px;
+}
+.ldg-sell-deficit-value {
+  margin-top: 2px;
+  color: var(--ldg-neg);
+  font-size: clamp(25px, 7vw, 32px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.ldg-sell-needed-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  color: var(--ldg-fg-4);
+  font-size: 12px;
+}
+.ldg-sell-needed-row strong {
+  color: var(--ldg-fg-2);
+  font-family: var(--ldg-mono);
+  font-size: 14px;
 }
 
 /* ---- Price ---- */
