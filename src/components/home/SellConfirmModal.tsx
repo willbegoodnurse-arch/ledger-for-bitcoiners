@@ -49,7 +49,11 @@ export default function SellConfirmModal({ result, btcKrw, unit, selectedMonth, 
     Number.isFinite(parsedBtcKrwPreview) && Number.isFinite(parsedBtcSold) ? parsedBtcKrwPreview * parsedBtcSold : 0;
 
   const currentHeldBtc = getHeldBtc();
-  const overHeld = deduct && Number.isFinite(parsedBtcSold) && parsedBtcSold > currentHeldBtc;
+  const previouslyDeductedBtc = editRecord?.deductedFromHeldBtc
+    ? editRecord.deductedBtcAmount ?? editRecord.btcSold
+    : 0;
+  const availableHeldBtc = currentHeldBtc + previouslyDeductedBtc;
+  const overHeld = deduct && Number.isFinite(parsedBtcSold) && parsedBtcSold > availableHeldBtc;
 
   const handleUnitToggle = (nextUnit: BtcUnit) => {
     if (nextUnit === sellUnit) return;
@@ -94,11 +98,17 @@ export default function SellConfirmModal({ result, btcKrw, unit, selectedMonth, 
       setError("값이 너무 큽니다.");
       return;
     }
+    const heldBtcAtSave = getHeldBtc();
+    const availableHeldBtcAtSave = heldBtcAtSave + previouslyDeductedBtc;
+    if (deduct && btcSold > availableHeldBtcAtSave) {
+      setError("보유 BTC보다 많이 판매할 수 없습니다.");
+      return;
+    }
 
     const satsSold = Math.round(btcSold * 1e8);
 
     if (editRecord) {
-      const oldDeducted = editRecord.deductedFromHeldBtc ? editRecord.deductedBtcAmount ?? editRecord.btcSold : 0;
+      const oldDeducted = previouslyDeductedBtc;
       const newDeducted = deduct ? btcSold : 0;
       const delta = newDeducted - oldDeducted;
 
@@ -236,12 +246,15 @@ export default function SellConfirmModal({ result, btcKrw, unit, selectedMonth, 
           <input
             type="checkbox"
             checked={deduct}
-            onChange={(e) => setDeduct(e.target.checked)}
+            onChange={(e) => {
+              setDeduct(e.target.checked);
+              setError("");
+            }}
           />
           <span>보유 BTC에서 차감</span>
         </label>
         {overHeld && (
-          <div className="ldg-modal-error">보유 BTC({fmtBtcValue(currentHeldBtc, unit)})보다 많습니다.</div>
+          <div className="ldg-modal-error">보유 BTC({fmtBtcValue(availableHeldBtc, unit)})보다 많습니다.</div>
         )}
 
         <div className="ldg-modal-field">
@@ -261,7 +274,7 @@ export default function SellConfirmModal({ result, btcKrw, unit, selectedMonth, 
           <button type="button" className="ldg-submit-btn secondary" onClick={onClose}>
             취소
           </button>
-          <button type="button" className="ldg-submit-btn" onClick={handleSave}>
+          <button type="button" className="ldg-submit-btn" onClick={handleSave} disabled={overHeld}>
             {isEdit ? "수정 완료" : "저장"}
           </button>
         </div>
