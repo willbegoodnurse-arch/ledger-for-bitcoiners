@@ -57,7 +57,7 @@ assert.match(
   /const heldBtcAtSave = getHeldBtc\(\);[\s\S]*if \(deduct && btcSold > availableHeldBtcAtSave\) \{[\s\S]*setError\("보유 BTC보다 많이 판매할 수 없습니다\."\);[\s\S]*return;/,
   "handleSave rechecks held BTC and returns before saving an overheld deducted sale"
 );
-assert.match(modalSrc, /disabled={overHeld}/, "save button is disabled while a deducted sale exceeds held BTC");
+assert.match(modalSrc, /disabled=\{[^}]*overHeld[^}]*\}/, "save button is disabled while a deducted sale exceeds held BTC");
 assert.match(
   modalSrc,
   /const overHeld = deduct && Number\.isFinite\(parsedBtcSold\) && parsedBtcSold > availableHeldBtc/,

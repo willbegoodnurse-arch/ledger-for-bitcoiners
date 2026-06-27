@@ -142,6 +142,24 @@ const sellCard = readFileSync("src/components/home/SellNeededCard.tsx", "utf8");
 assert.match(sellCard, /판매해야 하는 비트코인/, "SellNeededCard shows 판매해야 하는 비트코인");
 assert.match(homePage, /SellNeededCard/, "HomePage includes SellNeededCard");
 
+const sellConfirmModal = readFileSync("src/components/home/SellConfirmModal.tsx", "utf8");
+assert.match(sellConfirmModal, /applyAccountBalance/, "SellConfirmModal imports or uses applyAccountBalance");
+assert.match(sellConfirmModal, /현재 통장 잔액/, "SellConfirmModal has current account balance label");
+assert.match(
+  sellConfirmModal,
+  /!\s*isEdit[\s\S]{0,1200}balanceInput|balanceInput[\s\S]{0,1200}!\s*isEdit/,
+  "balance input is guarded to new sell confirmations"
+);
+assert.match(
+  sellConfirmModal,
+  /disabled=\{[^}]*fullyCovered[^}]*\}/,
+  "fullyCovered participates in the save button disabled condition"
+);
+const balanceSetItemCalls = [...sellConfirmModal.matchAll(/localStorage\.setItem\s*\(([\s\S]*?)\)/g)].filter((match) =>
+  match[1].includes("balanceInput")
+);
+assert.equal(balanceSetItemCalls.length, 0, "balanceInput is not persisted to localStorage");
+
 // 11. backup.ts includes heldBtc key
 const backup = readFileSync("src/lib/backup.ts", "utf8");
 assert.match(backup, /myledger\.heldBtc\.v1/, "backup includes heldBtc key");
