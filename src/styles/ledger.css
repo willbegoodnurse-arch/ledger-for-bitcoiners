@@ -395,6 +395,12 @@
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
 }
+.ldg-settlement-done {
+  color: var(--ldg-pos);
+  font-size: 30px;
+  font-weight: 850;
+  letter-spacing: 0;
+}
 .ldg-sell-needed-row {
   display: flex;
   align-items: baseline;

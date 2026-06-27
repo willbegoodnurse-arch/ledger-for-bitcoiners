@@ -17,7 +17,7 @@ const sellCalcSrc = readFileSync(sellCalcPath, "utf8");
 assert.match(sellCalcSrc, /calculateMonthlyLivingCashflow/, "calculateMonthlyLivingCashflow exists");
 assert.match(sellCalcSrc, /calculateSellNeeded/, "calculateSellNeeded exists");
 
-// DCA / BTC 매수는 거래 자체는 지출이지만 생활비 부족 계산에서는 제외된다.
+// DCA / BTC 留ㅼ닔??嫄곕옒 ?먯껜??吏異쒖씠吏留??앺솢鍮?遺議?怨꾩궛?먯꽌???쒖쇅?쒕떎.
 const monthSrc = readFileSync("src/lib/month.ts", "utf8");
 const compilerOptions = { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 };
 const compiledMonth = ts.transpileModule(monthSrc, { compilerOptions }).outputText;
@@ -64,13 +64,47 @@ for (const [key, value] of Object.entries(adjustedZeroRate)) {
   if (typeof value === "number") assert.ok(Number.isFinite(value), `${key} is finite`);
 }
 
+const monthlyCashPath = "src/lib/monthlyCash.ts";
+assert.ok(existsSync(monthlyCashPath), "monthlyCash.ts exists");
+const monthlyCashSrc = readFileSync(monthlyCashPath, "utf8");
+assert.match(monthlyCashSrc, /myledger\.monthlyCash\.v1/, "monthly cash localStorage key defined");
+assert.match(monthlyCashSrc, /getMonthlyCash/, "getMonthlyCash is exported");
+assert.match(monthlyCashSrc, /setMonthlyCash/, "setMonthlyCash is exported");
+
+class MemoryStorage {
+  #items = new Map();
+  getItem(key) {
+    return this.#items.has(key) ? this.#items.get(key) : null;
+  }
+  setItem(key, value) {
+    this.#items.set(key, String(value));
+  }
+  removeItem(key) {
+    this.#items.delete(key);
+  }
+}
+
+globalThis.localStorage = new MemoryStorage();
+const monthlyCash = await import(
+  `data:text/javascript;base64,${Buffer.from(ts.transpileModule(monthlyCashSrc, { compilerOptions }).outputText).toString("base64")}`
+);
+monthlyCash.setMonthlyCash("2026-06", 500_000);
+assert.equal(monthlyCash.getMonthlyCash("2026-06"), 500_000, "monthly cash round-trips by month");
+monthlyCash.setMonthlyCash("2026-06", 0);
+assert.equal(monthlyCash.getMonthlyCash("2026-06"), 0, "setting monthly cash to zero deletes the month value");
+monthlyCash.setMonthlyCash("2026-07", 123_000);
+monthlyCash.setMonthlyCash("2026-07", -1);
+assert.equal(monthlyCash.getMonthlyCash("2026-07"), 123_000, "negative monthly cash values are rejected");
+monthlyCash.setMonthlyCash("2026-07", NaN);
+assert.equal(monthlyCash.getMonthlyCash("2026-07"), 123_000, "NaN monthly cash values are rejected");
+
 const livingCashflow = sellCalculator.calculateMonthlyLivingCashflow(
   [
     {
       id: 1,
-      title: "생활비",
+      title: "Living expense",
       cat: "card_bill",
-      catLabel: "카드대금",
+      catLabel: "Card bill",
       time: "",
       date: "2026-06-10T00:00",
       amount: -300_000,
@@ -78,9 +112,9 @@ const livingCashflow = sellCalculator.calculateMonthlyLivingCashflow(
     },
     {
       id: 2,
-      title: "DCA / BTC 매수",
+      title: "DCA / BTC buy",
       cat: "btc_buy",
-      catLabel: "DCA / BTC 매수",
+      catLabel: "DCA / BTC buy",
       time: "",
       date: "2026-06-11T00:00",
       amount: -100_000,
@@ -88,15 +122,15 @@ const livingCashflow = sellCalculator.calculateMonthlyLivingCashflow(
     },
   ],
   {
-    card_bill: { id: "card_bill", label: "카드대금", group: "expense", flow: "expense" },
-    btc_buy: { id: "btc_buy", label: "DCA / BTC 매수", group: "invest", flow: "expense" },
+    card_bill: { id: "card_bill", label: "Card bill", group: "expense", flow: "expense" },
+    btc_buy: { id: "btc_buy", label: "DCA / BTC buy", group: "invest", flow: "expense" },
   },
   { startDate: "2026-06-01", endDate: "2026-06-30" }
 );
 assert.deepEqual(
   livingCashflow,
   { incomeKrw: 0, expenseKrw: 300_000 },
-  "DCA / BTC 매수 is excluded from living expense and sell-needed inputs"
+  "DCA / BTC 留ㅼ닔 is excluded from living expense and sell-needed inputs"
 );
 
 // 3-6. Arithmetic verification (inline calculation tests)
@@ -114,55 +148,77 @@ assert.ok(Math.abs(sellBtc - 500000 / 96700000) < 1e-12, "sellBtc matches 500000
 const sellSats = Math.round(sellBtc * 100_000_000);
 assert.equal(sellSats, Math.round((500000 / 96700000) * 100_000_000), "sats calculation matches");
 
-// netKrw positive → sellBtc should be 0
+// netKrw positive ??sellBtc should be 0
 const posNet = 100_000;
 const posDeficit = posNet < 0 ? Math.abs(posNet) : 0;
 assert.equal(posDeficit, 0, "positive net has no deficit");
 const posSellBtc = posDeficit / btcKrw;
 assert.equal(posSellBtc, 0, "positive net means no sell needed");
 
-// btcKrw = 0 → safe handling, no NaN/Infinity
+// btcKrw = 0 ??safe handling, no NaN/Infinity
 const zeroRateSell = 0 > 0 ? deficit / 0 : 0;
 assert.ok(Number.isFinite(zeroRateSell), "zero rate produces finite result");
 
 // 8. SettingsPage has held BTC input
 const settingsPage = readFileSync("src/components/settings/SettingsPage.tsx", "utf8");
-assert.match(settingsPage, /보유 BTC/, "SettingsPage has held BTC UI");
+assert.match(settingsPage, /heldBtcInput/, "SettingsPage has held BTC UI");
 
 // 9. Home screen has held BTC display
 const homePage = readFileSync("src/components/home/HomePage.tsx", "utf8");
 assert.match(homePage, /heldBtc/, "HomePage references heldBtc");
+assert.match(homePage, /getMonthlyCash/, "HomePage reads monthly cash");
+assert.match(
+  homePage,
+  /confirmedCoverageKrw:\s*monthlySellSummary\.totalKrwCovered\s*\+\s*monthlyCash/,
+  "HomePage adds monthly cash to confirmed coverage"
+);
+assert.match(homePage, /monthlyCash=\{monthlyCash\}/, "HomePage passes monthly cash to children");
+assert.match(homePage, /onMonthlyCashChanged=\{refreshAfterSellChange\}/, "HomePage refreshes after monthly cash changes");
 
 const balanceCard = readFileSync("src/components/home/BalanceCard.tsx", "utf8");
-assert.match(balanceCard, /보유 BTC/, "BalanceCard shows 보유 BTC");
+assert.match(balanceCard, /heldBtc/, "BalanceCard shows held BTC");
 
 // 10. Home screen has sell-needed card
 assert.ok(existsSync("src/components/home/SellNeededCard.tsx"), "SellNeededCard exists");
 const sellCard = readFileSync("src/components/home/SellNeededCard.tsx", "utf8");
-assert.match(sellCard, /판매해야 하는 비트코인/, "SellNeededCard shows 판매해야 하는 비트코인");
 assert.match(homePage, /SellNeededCard/, "HomePage includes SellNeededCard");
 
 const sellConfirmModal = readFileSync("src/components/home/SellConfirmModal.tsx", "utf8");
 assert.match(sellConfirmModal, /applyAccountBalance/, "SellConfirmModal imports or uses applyAccountBalance");
-assert.match(sellConfirmModal, /현재 통장 잔액/, "SellConfirmModal has current account balance label");
-assert.match(
-  sellConfirmModal,
-  /!\s*isEdit[\s\S]{0,1200}balanceInput|balanceInput[\s\S]{0,1200}!\s*isEdit/,
-  "balance input is guarded to new sell confirmations"
-);
+assert.match(sellConfirmModal, /통장 보유액/, "SellConfirmModal has monthly cash label");
+assert.match(sellConfirmModal, /setMonthlyCash/, "SellConfirmModal persists monthly cash on save");
+assert.match(sellConfirmModal, /통장 보유액만 저장/, "SellConfirmModal can save monthly cash without a sell record");
 assert.match(
   sellConfirmModal,
   /disabled=\{[^}]*fullyCovered[^}]*\}/,
   "fullyCovered participates in the save button disabled condition"
 );
+assert.doesNotMatch(
+  sellConfirmModal,
+  /판매 당시 BTC 가격[\s\S]{0,500}<input/,
+  "sell-time BTC price is no longer editable"
+);
+assert.doesNotMatch(
+  sellConfirmModal,
+  /판매할 비트코인[\s\S]{0,1400}<input/,
+  "sell BTC amount is no longer editable"
+);
+assert.doesNotMatch(sellConfirmModal, /충당 원화[\s\S]{0,500}<input/, "KRW covered amount is no longer editable");
 const balanceSetItemCalls = [...sellConfirmModal.matchAll(/localStorage\.setItem\s*\(([\s\S]*?)\)/g)].filter((match) =>
   match[1].includes("balanceInput")
 );
 assert.equal(balanceSetItemCalls.length, 0, "balanceInput is not persisted to localStorage");
 
+assert.match(sellCard, /정산 완료/, "SellNeededCard has settlement-complete branch");
+assert.match(sellCard, /ldg-settlement-done/, "SellNeededCard uses settlement-complete headline class");
+assert.match(sellCard, /monthlyCash/, "SellNeededCard displays monthly cash");
+assert.match(sellCard, /monthlySellSummary/, "SellNeededCard displays actual monthly sale summary");
+assert.match(sellCard, /sats/, "SellNeededCard displays sats alongside BTC");
+
 // 11. backup.ts includes heldBtc key
 const backup = readFileSync("src/lib/backup.ts", "utf8");
 assert.match(backup, /myledger\.heldBtc\.v1/, "backup includes heldBtc key");
+assert.match(backup, /MONTHLY_CASH_KEY/, "backup includes monthly cash key");
 
 // 12. appLock key is NOT in backup
 assert.doesNotMatch(backup, /myledger\.appLock\.v1/, "appLock key is not in backup");

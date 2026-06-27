@@ -38,15 +38,17 @@ assert.match(monthlyCardSrc, /fmtBtcValue/, "MonthlySellSummaryCard uses fmtBtcV
 const yearlyCardSrc = readFileSync("src/components/home/YearlySellSummaryCard.tsx", "utf8");
 assert.match(yearlyCardSrc, /fmtBtcValue/, "YearlySellSummaryCard uses fmtBtcValue");
 
-// 8. SellNeededCard has "BTC 판매 확정" button (Phase 12: renamed from 반영 to 확정)
+// 8. SellNeededCard has "BTC ?먮ℓ ?뺤젙" button (Phase 12: renamed from 諛섏쁺 to ?뺤젙)
 assert.match(sellCardSrc, /BTC 판매 확정/, "SellNeededCard has BTC 판매 확정 button");
 
-// 9. Modal has required fields
+// 9. Modal has required automated sell fields
 const modalSrc = readFileSync("src/components/home/SellConfirmModal.tsx", "utf8");
-assert.match(modalSrc, /판매.*BTC|판매.*sats/, "modal has sell BTC/sats input");
-assert.match(modalSrc, /충당 원화/, "modal has krwCovered input");
-// Phase 12: "판매 시점 BTC/KRW" 문구를 "판매 당시 BTC 가격"으로 바꿨다 — 같은 가격 입력 필드를 다르게 검사한다.
-assert.match(modalSrc, /판매 당시 BTC 가격/, "modal has the sell-time BTC price input");
+assert.match(modalSrc, /자동 판매량/, "modal shows automatic sell amount");
+assert.match(modalSrc, /sellSats/, "modal calculates sats automatically");
+assert.match(modalSrc, /sellBtc/, "modal calculates BTC automatically");
+assert.match(modalSrc, /krwCovered:\s*sellKrw/, "modal saves auto-calculated krwCovered");
+assert.match(modalSrc, /현재 BTC 가격/, "modal shows current BTC price");
+assert.match(modalSrc, /btcKrwAtSell:\s*currentBtcKrw/, "modal snapshots current BTC price on save");
 assert.match(modalSrc, /보유 BTC에서 차감/, "modal has deduct checkbox");
 
 // 10. Saving deducts from heldBtc
@@ -54,13 +56,13 @@ assert.match(modalSrc, /setHeldBtc/, "modal calls setHeldBtc for deduction");
 assert.match(modalSrc, /Math\.max\(0/, "deduction does not go below 0");
 assert.match(
   modalSrc,
-  /const heldBtcAtSave = getHeldBtc\(\);[\s\S]*if \(deduct && btcSold > availableHeldBtcAtSave\) \{[\s\S]*setError\("보유 BTC보다 많이 판매할 수 없습니다\."\);[\s\S]*return;/,
+  /const heldBtcAtSave = getHeldBtc\(\);[\s\S]*if \(deduct && sellBtc > availableHeldBtcAtSave\) \{[\s\S]*setError\("보유 BTC보다 많이 판매할 수 없습니다\."\);[\s\S]*return;/,
   "handleSave rechecks held BTC and returns before saving an overheld deducted sale"
 );
 assert.match(modalSrc, /disabled=\{[^}]*overHeld[^}]*\}/, "save button is disabled while a deducted sale exceeds held BTC");
 assert.match(
   modalSrc,
-  /const overHeld = deduct && Number\.isFinite\(parsedBtcSold\) && parsedBtcSold > availableHeldBtc/,
+  /const overHeld = deduct && Number\.isFinite\(sellBtc\) && sellBtc > availableHeldBtc/,
   "overheld blocking is gated by deduct so external non-deducted sales remain allowed"
 );
 
@@ -78,7 +80,7 @@ assert.match(tabbarCss, /text-decoration:\s*none/, "tab has text-decoration: non
 // 14. Home month display uses month utilities.
 // Phase 11: month-label rendering lives in the shared MonthSelector component.
 // Phase 11.1: HomePage renders MonthSelector directly below the balance card (not inside
-// LedgerHeader anymore) — LedgerHeader is no longer responsible for month display.
+// LedgerHeader anymore) ??LedgerHeader is no longer responsible for month display.
 const homePageSrc = readFileSync("src/components/home/HomePage.tsx", "utf8");
 assert.match(homePageSrc, /MonthSelector/, "HomePage renders the shared MonthSelector");
 const monthSelectorSrc = readFileSync("src/components/common/MonthSelector.tsx", "utf8");
