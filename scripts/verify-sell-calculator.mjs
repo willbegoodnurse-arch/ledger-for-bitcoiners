@@ -27,6 +27,43 @@ const compiledSellCalculator = ts
   .outputText.replace('"./month"', `"${monthModuleUrl}"`);
 const sellCalculatorModuleUrl = `data:text/javascript;base64,${Buffer.from(compiledSellCalculator).toString("base64")}`;
 const sellCalculator = await import(sellCalculatorModuleUrl);
+assert.equal(typeof sellCalculator.applyAccountBalance, "function", "applyAccountBalance is exported");
+
+const adjustedPartial = sellCalculator.applyAccountBalance(2_000_000, 500_000, 150_000_000);
+assert.equal(adjustedPartial.accountBalanceKrw, 500_000, "account balance is preserved when valid");
+assert.equal(adjustedPartial.requiredKrw, 2_000_000, "required KRW is preserved when valid");
+assert.equal(adjustedPartial.sellKrw, 1_500_000, "balance reduces required sell KRW");
+assert.equal(adjustedPartial.fullyCovered, false, "partial balance still requires a sale");
+assert.equal(adjustedPartial.sellSats, Math.round((1_500_000 / 150_000_000) * 100_000_000), "balance-adjusted sats are rounded");
+
+const adjustedLowerBalance = sellCalculator.applyAccountBalance(2_000_000, 200_000, 150_000_000);
+assert.equal(adjustedLowerBalance.sellKrw, 1_800_000, "lower current balance increases sell KRW");
+
+const adjustedCovered = sellCalculator.applyAccountBalance(2_000_000, 2_500_000, 150_000_000);
+assert.equal(adjustedCovered.sellKrw, 0, "sufficient account balance removes sell KRW");
+assert.equal(adjustedCovered.sellBtc, 0, "sufficient account balance removes sell BTC");
+assert.equal(adjustedCovered.sellSats, 0, "sufficient account balance removes sell sats");
+assert.equal(adjustedCovered.fullyCovered, true, "sufficient account balance is marked fully covered");
+
+const adjustedNoBalance = sellCalculator.applyAccountBalance(2_000_000, 0, 150_000_000);
+assert.equal(adjustedNoBalance.sellKrw, 2_000_000, "zero account balance keeps full required KRW");
+
+const adjustedNegativeBalance = sellCalculator.applyAccountBalance(2_000_000, -100_000, 150_000_000);
+assert.equal(adjustedNegativeBalance.accountBalanceKrw, 0, "negative account balance is clamped to zero");
+assert.equal(adjustedNegativeBalance.sellKrw, 2_000_000, "negative account balance keeps full required KRW");
+
+const adjustedNanBalance = sellCalculator.applyAccountBalance(2_000_000, NaN, 150_000_000);
+assert.equal(adjustedNanBalance.accountBalanceKrw, 0, "NaN account balance is clamped to zero");
+assert.equal(adjustedNanBalance.sellKrw, 2_000_000, "NaN account balance keeps full required KRW");
+
+const adjustedZeroRate = sellCalculator.applyAccountBalance(2_000_000, 500_000, 0);
+assert.equal(adjustedZeroRate.sellKrw, 1_500_000, "zero BTC rate still reports balance-adjusted KRW");
+assert.equal(adjustedZeroRate.sellBtc, 0, "zero BTC rate produces zero BTC");
+assert.equal(adjustedZeroRate.sellSats, 0, "zero BTC rate produces zero sats");
+for (const [key, value] of Object.entries(adjustedZeroRate)) {
+  if (typeof value === "number") assert.ok(Number.isFinite(value), `${key} is finite`);
+}
+
 const livingCashflow = sellCalculator.calculateMonthlyLivingCashflow(
   [
     {
