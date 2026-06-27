@@ -345,7 +345,7 @@ function reducer(state: State, action: Action): State {
     case "PRICE_FETCH_START":
       return { ...state, priceMeta: { ...state.priceMeta, status: "loading" } };
     case "PRICE_FETCH_SETTLED": {
-      const { btcKRW, btcUSD, usdKRW, errors, sourceMeta } = action;
+      const { btcKRW, btcUSD, usdKRW, blockHeight, errors, sourceMeta } = action;
       const freshness = applyPriceFetchResult(state.priceMeta.freshness, action);
       return {
         ...state,
@@ -354,6 +354,7 @@ function reducer(state: State, action: Action): State {
           btcKRW: btcKRW ?? state.data.btcKRW,
           btcUSD: btcUSD ?? state.data.btcUSD,
           usdKRW: usdKRW ?? state.data.usdKRW,
+          blockHeight: blockHeight ?? state.data.blockHeight,
         },
         priceMeta: {
           status: errors.length > 0 ? "error" : "ok",

@@ -6,6 +6,16 @@ async function fetchJson(url: string): Promise<unknown> {
   return res.json();
 }
 
+async function fetchPositiveIntegerText(url: string): Promise<number> {
+  const res = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+  if (!res.ok) throw new Error(`${url} -> HTTP ${res.status}`);
+  const value = Number((await res.text()).trim());
+  if (!Number.isFinite(value) || !Number.isInteger(value) || value <= 0) {
+    throw new Error(`${url} -> invalid block height`);
+  }
+  return value;
+}
+
 // 업비트 현재가 (KRW-BTC)
 export async function fetchUpbitBtcKrw(): Promise<number> {
   const json = (await fetchJson("https://api.upbit.com/v1/ticker?markets=KRW-BTC")) as Array<{
@@ -71,6 +81,15 @@ export async function fetchCoinbaseUsdKrw(): Promise<number> {
   return rate;
 }
 
+export async function fetchBlockHeight(): Promise<number> {
+  try {
+    return await fetchPositiveIntegerText("https://mempool.space/api/blocks/tip/height");
+  } catch (primaryError) {
+    console.warn("Mempool block height fetch failed; trying blockchain.info:", primaryError);
+    return fetchPositiveIntegerText("https://blockchain.info/q/getblockcount");
+  }
+}
+
 export type PriceSource = "Upbit" | "Binance" | "FX";
 
 export interface BtcUsdResult {
@@ -119,6 +138,7 @@ export interface PriceFetchResult {
   btcKRW?: number;
   btcUSD?: number;
   usdKRW?: number;
+  blockHeight?: number;
   sourceMeta: PriceSourceMeta;
   errors: PriceSource[];
 }
@@ -126,10 +146,11 @@ export interface PriceFetchResult {
 // 세 소스를 독립적으로 호출 — 일부가 실패해도 성공한 값만 반환하고
 // 실패한 항목은 errors에 담아 호출 측이 마지막 값을 유지하도록 한다.
 export async function fetchLivePrices(): Promise<PriceFetchResult> {
-  const [upbit, btcUsd, fx] = await Promise.allSettled([
+  const [upbit, btcUsd, fx, blockHeight] = await Promise.allSettled([
     fetchUpbitBtcKrw(),
     fetchBtcUsdWithFallback(),
     fetchUsdKrwWithFallback(),
+    fetchBlockHeight(),
   ]);
 
   const result: PriceFetchResult = {
@@ -161,6 +182,9 @@ export async function fetchLivePrices(): Promise<PriceFetchResult> {
     console.error("FX rate fetch failed:", fx.reason);
     result.errors.push("FX");
   }
+
+  if (blockHeight.status === "fulfilled") result.blockHeight = blockHeight.value;
+  else console.error("Block height fetch failed:", blockHeight.reason);
 
   return result;
 }
