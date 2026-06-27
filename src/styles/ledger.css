@@ -397,9 +397,47 @@
 }
 .ldg-settlement-done {
   color: var(--ldg-pos);
-  font-size: 30px;
-  font-weight: 850;
+  font-size: 1.35rem;
+  font-weight: 800;
   letter-spacing: 0;
+  line-height: 1.2;
+  text-align: left;
+}
+.ldg-done-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+.ldg-done-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.ldg-done-label {
+  flex: 0 0 auto;
+  color: var(--ldg-fg-3);
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.ldg-done-val {
+  color: var(--ldg-fg-2);
+  font-family: var(--ldg-mono);
+  font-size: 14px;
+  line-height: 1.35;
+  text-align: right;
+}
+.ldg-done-val strong {
+  display: block;
+  font-weight: 800;
+}
+.ldg-done-val .sub {
+  display: block;
+  margin-top: 2px;
+  color: var(--ldg-fg-3);
+  font-size: 0.8em;
 }
 .ldg-sell-needed-row {
   display: flex;

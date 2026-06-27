@@ -214,6 +214,20 @@ assert.match(sellCard, /ldg-settlement-done/, "SellNeededCard uses settlement-co
 assert.match(sellCard, /monthlyCash/, "SellNeededCard displays monthly cash");
 assert.match(sellCard, /monthlySellSummary/, "SellNeededCard displays actual monthly sale summary");
 assert.match(sellCard, /sats/, "SellNeededCard displays sats alongside BTC");
+const completedBranch = sellCard.match(/noSellNeeded \? \(\s*<>\s*([\s\S]*?)\s*<\/>\s*\) : \(/)?.[1] ?? "";
+assert.ok(completedBranch.length > 0, "SellNeededCard settlement-complete branch can be inspected");
+assert.doesNotMatch(completedBranch, /이번 달/, "settlement-complete labels omit this-month wording");
+assert.doesNotMatch(completedBranch, /이미 반영|총 부족분/, "settlement-complete branch omits reflected/total-deficit line");
+assert.doesNotMatch(completedBranch, /BtcAndSats/, "settlement-complete branch does not reuse duplicate BTC/sats helper");
+for (const label of ["예상 판매량", "통장 보유액", "실제 판매량", "판매 후 BTC"]) {
+  assert.match(completedBranch, new RegExp(label), `settlement-complete branch shows ${label}`);
+}
+assert.match(completedBranch, /formatDoneBtc/, "settlement-complete branch uses fixed 8-decimal BTC formatting");
+
+const ledgerCss = readFileSync("src/styles/ledger.css", "utf8");
+assert.match(ledgerCss, /\.ldg-done-row/, "settlement-complete rows have scoped layout class");
+assert.match(ledgerCss, /\.ldg-done-label[\s\S]*white-space:\s*nowrap/, "settlement-complete labels do not wrap");
+assert.match(ledgerCss, /\.ldg-done-val[\s\S]*text-align:\s*right/, "settlement-complete values are right-aligned");
 
 // 11. backup.ts includes heldBtc key
 const backup = readFileSync("src/lib/backup.ts", "utf8");

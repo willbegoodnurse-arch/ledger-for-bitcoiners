@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { MonthSellSummary } from "../../lib/btcSellRecords";
 import type { SellResult } from "../../lib/sellCalculator";
 import { fmtBtcValue, fmtKRW, type BtcUnit } from "../../lib/format";
@@ -32,6 +33,29 @@ function BtcAndSats({ btc, sats, unit }: { btc: number; sats: number; unit: BtcU
   );
 }
 
+function formatDoneBtc(btc: number): string {
+  const safeBtc = Number.isFinite(btc) ? btc : 0;
+  return `${safeBtc.toFixed(8)} BTC`;
+}
+
+function DoneAmount({ btc, sats }: { btc: number; sats: number }) {
+  return (
+    <span className="ldg-done-val">
+      <strong>{sats.toLocaleString("en-US")} sats</strong>
+      <span className="sub">{formatDoneBtc(btc)}</span>
+    </span>
+  );
+}
+
+function DoneRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="ldg-done-row">
+      <span className="ldg-done-label">{label}</span>
+      {children}
+    </div>
+  );
+}
+
 export default function SellNeededCard({ result, unit, selectedMonth, monthlyCash, monthlySellSummary, btcKrw, onConfirmSell }: Props) {
   const { deficitKrw, sellBtc, sellSats, totalDeficitKrw, confirmedCoverageKrw } = result;
   const noSellNeeded = deficitKrw === 0;
@@ -46,27 +70,24 @@ export default function SellNeededCard({ result, unit, selectedMonth, monthlyCas
       {noSellNeeded ? (
         <>
           <div className="ldg-settlement-done">정산 완료</div>
-          <div className="ldg-sell-needed-row" style={{ marginTop: 10 }}>
-            <span>이번 달 예상 판매량</span>
-            <BtcAndSats btc={expectedTotalBtc} sats={expectedTotalSats} unit={unit} />
+          <div className="ldg-done-list">
+            <DoneRow label="예상 판매량">
+              <DoneAmount btc={expectedTotalBtc} sats={expectedTotalSats} />
+            </DoneRow>
+            <DoneRow label="통장 보유액">
+              <span className="ldg-done-val">
+                <strong>{fmtKRW(monthlyCash)}</strong>
+              </span>
+            </DoneRow>
+            <DoneRow label="실제 판매량">
+              <DoneAmount btc={actualSoldBtc} sats={monthlySellSummary.totalSatsSold} />
+            </DoneRow>
+            <DoneRow label="판매 후 BTC">
+              <span className="ldg-done-val">
+                <strong>{formatDoneBtc(actualSoldBtc)}</strong>
+              </span>
+            </DoneRow>
           </div>
-          <div className="ldg-sell-needed-row">
-            <span>이번 달 통장 보유액</span>
-            <strong>{fmtKRW(monthlyCash)}</strong>
-          </div>
-          <div className="ldg-sell-needed-row">
-            <span>실제 판매량</span>
-            <BtcAndSats btc={actualSoldBtc} sats={monthlySellSummary.totalSatsSold} unit={unit} />
-          </div>
-          <div className="ldg-sell-needed-row">
-            <span>이번 달 판매 후 BTC</span>
-            <strong>월 판매량 기준 -{fmtBtcValue(actualSoldBtc, unit)}</strong>
-          </div>
-          {hasConfirmed && (
-            <div className="ldg-balance-sub" style={{ marginTop: 8 }}>
-              이미 반영 {fmtKRW(confirmedCoverageKrw)} / 총 부족분 {fmtKRW(totalDeficitKrw)}
-            </div>
-          )}
         </>
       ) : (
         <>
