@@ -1,15 +1,11 @@
-const CACHE_NAME = "myledger-shell-v2";
+const CACHE_NAME = "myledger-shell-v3";
 const APP_SHELL = [
   "/",
   "/index.html",
   "/manifest.webmanifest",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
-  "/icons/icon-192.svg",
-  "/icons/icon-512.svg",
-  "/icons/maskable-icon.svg",
-  "/icons/apple-touch-icon-180.png",
-  "/icons/apple-touch-icon.svg"
+  "/icons/apple-touch-icon-180.png"
 ];
 
 const API_HOSTS = new Set([

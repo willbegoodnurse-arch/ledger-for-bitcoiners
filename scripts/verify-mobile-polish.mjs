@@ -69,7 +69,7 @@ const appLockGate = fs.readFileSync("src/components/security/AppLockGate.tsx", "
 check("lock screen has no My Ledger text", !appLockGate.includes('"My Ledger"') && !appLockGate.includes("'My Ledger'"));
 check("lock screen has no bitcoin symbol", !appLockGate.includes("₿"));
 
-// Icons should not contain bitcoin references
+// App icons are PNG-only to avoid Safari/PWA choosing stale SVG artwork
 const iconFiles = [
   "public/icons/icon-192.svg",
   "public/icons/icon-512.svg",
@@ -77,10 +77,7 @@ const iconFiles = [
   "public/icons/apple-touch-icon.svg",
 ];
 for (const iconPath of iconFiles) {
-  const svg = fs.readFileSync(iconPath, "utf8");
-  check(`${iconPath} has no bitcoin symbol`, !svg.includes("₿"));
-  check(`${iconPath} uses orange receipt background`, svg.toLowerCase().includes("#f7931a"));
-  check(`${iconPath} uses receipt artwork`, svg.includes("M14 8h20v32l-4-2-3 2-3-2-3 2-3-2-4 2z"));
+  check(`${iconPath} is not kept as a competing app icon`, !fs.existsSync(iconPath));
 }
 
 if (ok) {

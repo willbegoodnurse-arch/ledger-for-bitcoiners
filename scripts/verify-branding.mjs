@@ -9,7 +9,6 @@ const tokensPath = join(root, "src", "styles", "tokens.css");
 const globalPath = join(root, "src", "styles", "global.css");
 const formsPath = join(root, "src", "styles", "forms.css");
 const ledgerPath = join(root, "src", "styles", "ledger.css");
-const appleIconPath = join(root, "public", "icons", "apple-touch-icon.svg");
 const applePngPath = join(root, "public", "icons", "apple-touch-icon-180.png");
 const categoryIconsPath = join(root, "src", "lib", "categoryIcons.ts");
 const categoriesPath = join(root, "src", "lib", "categories.ts");
@@ -18,15 +17,15 @@ const ledgerContextPath = join(root, "src", "state", "LedgerContext.tsx");
 
 assert.equal(existsSync(manifestPath), true, "manifest exists");
 assert.equal(existsSync(indexPath), true, "index.html exists");
-assert.equal(existsSync(appleIconPath), true, "apple touch icon exists");
 assert.equal(existsSync(applePngPath), true, "iOS PNG apple touch icon exists");
 
 const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
-assert.ok(Array.isArray(manifest.icons) && manifest.icons.length >= 4, "manifest icons array exists");
+assert.ok(Array.isArray(manifest.icons) && manifest.icons.length === 3, "manifest icons array uses PNG-only app icons");
 assert.ok(manifest.icons.some((icon) => icon.sizes === "192x192"), "192 icon exists in manifest");
 assert.ok(manifest.icons.some((icon) => icon.sizes === "512x512" && icon.purpose === "any"), "512 icon exists in manifest");
-assert.ok(manifest.icons.some((icon) => /maskable/.test(icon.purpose)), "maskable icon exists in manifest");
 assert.ok(manifest.icons.some((icon) => /apple-touch-icon/.test(icon.src)), "apple icon exists in manifest");
+assert.equal(manifest.icons.every((icon) => icon.type === "image/png"), true, "manifest icons are PNG only");
+assert.equal(manifest.icons.some((icon) => /\.svg$/i.test(icon.src)), false, "manifest does not reference SVG icons");
 assert.ok(
   manifest.icons.some((icon) => icon.src === "/icons/icon-192.png" && icon.type === "image/png"),
   "PNG 192 icon exists in manifest"
@@ -46,7 +45,7 @@ for (const icon of manifest.icons) {
 
 const index = readFileSync(indexPath, "utf8");
 assert.match(index, /rel="apple-touch-icon"/, "index includes apple-touch-icon");
-assert.match(index, /href="\/icons\/apple-touch-icon-180\.png"/, "index uses PNG apple-touch-icon");
+assert.match(index, /href="\/icons\/apple-touch-icon-180\.png\?v=3"/, "index uses versioned PNG apple-touch-icon");
 assert.match(index, /font-display|display=swap/, "external font uses display swap");
 
 const categoryIcons = readFileSync(categoryIconsPath, "utf8");
@@ -74,9 +73,7 @@ assert.match(categoryIconComponent, /hexToRgba\(c\.fg,\s*0\.1\)/, "category icon
 assert.match(categoryIconComponent, /strokeWidth="1\.6"/, "category icon stroke is lighter");
 
 for (const iconName of ["icon-192.svg", "icon-512.svg", "maskable-icon.svg", "apple-touch-icon.svg"]) {
-  const svg = readFileSync(join(root, "public", "icons", iconName), "utf8");
-  assert.match(svg, /#f7931a/i, `${iconName} has orange receipt background`);
-  assert.match(svg, /M14 8h20v32l-4-2-3 2-3-2-3 2-3-2-4 2z/, `${iconName} has receipt body`);
+  assert.equal(existsSync(join(root, "public", "icons", iconName)), false, `${iconName} is not kept as a competing app icon`);
 }
 
 const tokens = readFileSync(tokensPath, "utf8");

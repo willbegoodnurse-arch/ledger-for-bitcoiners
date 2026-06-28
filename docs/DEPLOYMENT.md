@@ -55,7 +55,7 @@ https://leaky-sats.vercel.app
 
 `vercel.json`에는 `npm run build`, `dist`, SPA rewrite fallback이 포함되어 있습니다.
 
-배포 후 `/manifest.webmanifest`, `/sw.js`, `/icons/icon-192.svg`가 직접 열리는지 확인합니다.
+배포 후 `/manifest.webmanifest`, `/sw.js`, `/icons/icon-192.png`가 직접 열리는지 확인합니다.
 
 ## PWA 배포 후 확인 체크리스트
 
