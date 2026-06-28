@@ -387,6 +387,15 @@
   margin-top: 4px;
 }
 
+/* ---- Onboarding steps ---- */
+.ldg-onboarding-steps {
+  margin: 8px 0 12px;
+  padding-left: 22px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--ldg-fg-2);
+}
+
 /* ---- Sell record rows ---- */
 .ldg-sell-record-row {
   position: relative;
