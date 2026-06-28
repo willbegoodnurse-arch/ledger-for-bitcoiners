@@ -16,7 +16,7 @@ export const PROTECTED_IDS = new Set(["etc", "etc_income", "btc_buy", "btc_sell"
 // 삭제되지 않는다.
 export const BUILT_IN_CATEGORIES: CategoryDef[] = [
   // ---- 지출 10 ----
-  { id: "card_bill", label: "카드대금", group: "expense", flow: "expense", icon: "bag", fg: "#c084fc" },
+  { id: "card_bill", label: "카드대금", group: "expense", flow: "expense", icon: "card", fg: "#c084fc" },
   { id: "insurance", label: "보험비", group: "expense", flow: "expense", icon: "shield", fg: "#94a3b8" },
   { id: "telecom", label: "통신비", group: "expense", flow: "expense", icon: "phone", fg: "#38bdf8" },
   { id: "management_fee", label: "관리비", group: "expense", flow: "expense", icon: "home", fg: "#a78bfa" },

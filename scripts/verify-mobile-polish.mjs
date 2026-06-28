@@ -79,7 +79,8 @@ const iconFiles = [
 for (const iconPath of iconFiles) {
   const svg = fs.readFileSync(iconPath, "utf8");
   check(`${iconPath} has no bitcoin symbol`, !svg.includes("₿"));
-  check(`${iconPath} has no bitcoin orange #f7931a`, !svg.toLowerCase().includes("#f7931a"));
+  check(`${iconPath} uses orange receipt background`, svg.toLowerCase().includes("#f7931a"));
+  check(`${iconPath} uses receipt artwork`, svg.includes("M14 8h20v32l-4-2-3 2-3-2-3 2-3-2-4 2z"));
 }
 
 if (ok) {

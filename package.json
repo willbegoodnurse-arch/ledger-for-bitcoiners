@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
+    "gen:icons": "node scripts/gen-icons.mjs",
     "verify:persist": "node scripts/verify-persist.mjs",
     "verify:calc": "node scripts/verify-calculations.mjs",
     "verify:pwa": "node scripts/verify-pwa.mjs",
@@ -45,6 +46,7 @@
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "sharp": "^0.35.2",
     "typescript": "^5.5.4",
     "vite": "^5.4.2"
   }

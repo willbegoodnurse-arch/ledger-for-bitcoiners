@@ -1,11 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Wallet">
-  <!-- maskable: safe zone is inner 80%, so center content within 51-461 range -->
-  <rect width="512" height="512" fill="#1a1a2e"/>
-  <!-- wallet body -->
-  <rect x="128" y="176" width="256" height="170" rx="28" fill="none" stroke="#e0e0e0" stroke-width="12"/>
-  <!-- wallet flap -->
-  <path d="M128 214v-12c0-16 13-28 28-28h200c16 0 28 13 28 28v12" fill="none" stroke="#e0e0e0" stroke-width="12"/>
-  <!-- clasp circle -->
-  <circle cx="348" cy="261" r="20" fill="#e0e0e0" opacity="0.9"/>
-  <circle cx="348" cy="261" r="10" fill="#1a1a2e"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Ledger receipt">
+  <rect width="512" height="512" fill="#f7931a"/>
+  <g transform="translate(51.2 51.2) scale(8.533333)" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 8h20v32l-4-2-3 2-3-2-3 2-3-2-4 2z M19 16h10 M19 22h10 M19 28h6"/>
+  </g>
 </svg>
