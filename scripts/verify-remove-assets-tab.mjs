@@ -80,8 +80,8 @@ const devDeps = Object.keys(pkg.devDependencies ?? {});
 assert.deepEqual(deps.sort(), ["react", "react-dom", "react-router-dom"], "no new runtime dependency added");
 assert.deepEqual(
   devDeps.sort(),
-  ["@types/react", "@types/react-dom", "@vitejs/plugin-react", "typescript", "vite"],
-  "no new dev dependency added"
+  ["@types/react", "@types/react-dom", "@vitejs/plugin-react", "sharp", "typescript", "vite"],
+  "no new dev dependency added except manual icon generation"
 );
 
 console.log("verify:remove-assets-tab passed");

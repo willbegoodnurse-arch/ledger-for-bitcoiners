@@ -8,14 +8,14 @@ export default function CategoryIcon({ cat }: { cat: CategoryId }) {
   const c = categoriesById[cat] ?? categoriesById.etc;
   const iconPath = ICONS_BY_ID[c?.icon ?? "dots"]?.path ?? ICONS_BY_ID.dots.path;
   return (
-    <div className="ldg-cat-icon" style={{ background: hexToRgba(c.fg, 0.15), color: c.fg }}>
+    <div className="ldg-cat-icon" style={{ background: hexToRgba(c.fg, 0.1), color: c.fg }}>
       <svg
         viewBox="0 0 24 24"
         width="18"
         height="18"
         fill="none"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="1.6"
         strokeLinecap="round"
         strokeLinejoin="round"
       >

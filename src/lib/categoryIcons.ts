@@ -1,4 +1,4 @@
-export interface IconDef {
+﻿export interface IconDef {
   id: string;
   label: string;
   path: string; // space-separated "M..." subpaths, 24x24 viewBox, stroke-rendered
@@ -54,12 +54,16 @@ export const ICONS: IconDef[] = [
     path: "M4 12.5a5.5 5.5 0 0 1 5.5-5.5h3a5.5 5.5 0 0 1 5.5 5.5v0.5h2l-1 3h-1v1a2 2 0 0 1-2 2h-0.5v2h-3v-2h-3v2h-3v-2.3A5.5 5.5 0 0 1 4 12.5z M9.5 10h.01",
   },
   { id: "refresh", label: "환급", path: "M3 12a9 9 0 1 0 3-6.7 M3 4.5V9h4.5" },
-  { id: "percent", label: "퍼센트", path: "M19 5L5 19 M7 8.5a1.5 1.5 0 1 0 0.01 0 M17 18.5a1.5 1.5 0 1 0 0.01 0" },
-  { id: "arrowDown", label: "입금", path: "M12 4v14 M5 11l7 7 7-7" },
+  { id: "percent", label: "퍼센트", path: "M18 6L6 18 M8 8a2 2 0 1 0 0.01 0 M16 16a2 2 0 1 0 0.01 0" },
+  {
+    id: "card",
+    label: "카드",
+    path: "M4 6h16a1.5 1.5 0 0 1 1.5 1.5v9A1.5 1.5 0 0 1 20 18H4a1.5 1.5 0 0 1-1.5-1.5v-9A1.5 1.5 0 0 1 4 6z M2.5 10h19",
+  },  { id: "arrowDown", label: "입금", path: "M12 4v14 M5 11l7 7 7-7" },
   {
     id: "bitcoin",
     label: "비트코인",
-    path: "M9 4h5a3 3 0 0 1 0 6H9 M9 10h6a3 3 0 0 1 0 6H9 M9 4v16 M11 2v2 M11 20v2 M14 2v2 M14 20v2",
+    path: "M8.5 6.5h5a2.3 2.3 0 0 1 0 4.6H8.5 M8.5 11.1h5.4a2.4 2.4 0 0 1 0 4.8H8.5 M8.5 6.5v9.4 M10.6 4.6v1.9 M10.6 15.9v1.9 M13 4.6v1.9 M13 15.9v1.9",
   },
 ];
 
