@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+jobs:
+  verify:
+    name: Build and targeted verifies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify backup
+        run: npm run verify:backup
+
+      - name: Verify recurring
+        run: npm run verify:recurring
+
+      - name: Verify price staleness
+        run: npm run verify:price-staleness
+
+      - name: Verify price fallbacks
+        run: npm run verify:price-fallbacks
+
+      - name: Verify price source UI
+        run: npm run verify:price-source-ui
+
+      - name: Verify settlement sale UX
+        run: npm run verify:settlement-sale-ux
+
+      # Browser, deployment, and PWA/service-worker checks are intentionally
+      # left out of this fast CI path because they can depend on hosting
+      # previews, browser behavior, or generated deployment artifacts.

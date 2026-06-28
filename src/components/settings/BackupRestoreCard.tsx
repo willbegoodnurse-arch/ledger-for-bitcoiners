@@ -3,9 +3,11 @@ import {
   decryptBackupFile,
   downloadBackup,
   downloadEncryptedBackup,
+  loadLastBackupAt,
   prepareBackupRestore,
   readBackupFile,
   restoreBackupPayload,
+  saveLastBackupAt,
   type EncryptedBackupFile,
   type BackupPayload,
   type BackupPreview,
@@ -14,6 +16,18 @@ import {
 type Status = { tone: "ok" | "error" | "idle"; text: string };
 type PendingRestore = { fileName: string; payload: BackupPayload; preview: BackupPreview };
 type PendingEncryptedRestore = { fileName: string; encrypted: EncryptedBackupFile };
+const BACKUP_STALE_DAYS = 7;
+
+function formatLastBackupAt(value: string | null): string {
+  if (!value) return "아직 백업 기록 없음";
+  return new Date(value).toLocaleString("ko-KR");
+}
+
+function isBackupStale(value: string | null): boolean {
+  if (!value) return false;
+  const ageMs = Date.now() - new Date(value).getTime();
+  return ageMs >= BACKUP_STALE_DAYS * 24 * 60 * 60 * 1000;
+}
 
 export default function BackupRestoreCard() {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -28,6 +42,11 @@ export default function BackupRestoreCard() {
   const [backupPasswordConfirm, setBackupPasswordConfirm] = useState("");
   const [restorePassword, setRestorePassword] = useState("");
   const [restoreCompleted, setRestoreCompleted] = useState(false);
+  const [lastBackupAt, setLastBackupAt] = useState<string | null>(() => loadLastBackupAt());
+
+  const recordBackupSuccess = () => {
+    setLastBackupAt(saveLastBackupAt());
+  };
 
   const preparePlainRestore = (fileName: string, payload: BackupPayload) => {
     const prepared = prepareBackupRestore(payload);
@@ -41,6 +60,8 @@ export default function BackupRestoreCard() {
   const handleDownload = async () => {
     if (!encryptExport) {
       downloadBackup();
+      recordBackupSuccess();
+      setStatus({ tone: "ok", text: "백업 파일을 다운로드했습니다. 마지막 백업 시간이 저장되었습니다." });
       return;
     }
     if (!backupPassword) {
@@ -53,9 +74,10 @@ export default function BackupRestoreCard() {
     }
     try {
       await downloadEncryptedBackup(backupPassword);
+      recordBackupSuccess();
       setBackupPassword("");
       setBackupPasswordConfirm("");
-      setStatus({ tone: "ok", text: "암호화 백업 파일을 다운로드했습니다." });
+      setStatus({ tone: "ok", text: "암호화 백업 파일을 다운로드했습니다. 마지막 백업 시간이 저장되었습니다." });
     } catch (error) {
       setStatus({ tone: "error", text: error instanceof Error ? error.message : "암호화 백업에 실패했습니다." });
     }
@@ -126,6 +148,14 @@ export default function BackupRestoreCard() {
       <div className="ldg-page-sub" style={{ marginBottom: 12 }}>
         localStorage 전용 앱이라 브라우저 데이터 삭제나 기기 변경 전에 백업이 필요합니다. 시드, 개인키, API 키는 저장하지 않습니다.
       </div>
+      <div className="ldg-backup-status idle" style={{ marginBottom: 12 }}>
+        마지막 백업: {formatLastBackupAt(lastBackupAt)}
+      </div>
+      {isBackupStale(lastBackupAt) && (
+        <div className="ldg-backup-status error" style={{ marginBottom: 12 }}>
+          마지막 백업 후 7일 이상 지났습니다. 기기 변경/브라우저 삭제 전에 백업을 권장합니다.
+        </div>
+      )}
       <div className="ldg-backup-actions">
         <button className="ldg-submit-btn" type="button" onClick={handleDownload}>
           백업 파일 다운로드
@@ -214,6 +244,11 @@ export default function BackupRestoreCard() {
         </div>
       )}
       <div className={`ldg-backup-status ${status.tone}`}>{status.text}</div>
+      {restoreCompleted && (
+        <div className="ldg-backup-status idle" style={{ marginTop: 10 }}>
+          복원 완료 후 화면 새로고침이 필요할 수 있습니다.
+        </div>
+      )}
       {restoreCompleted && (
         <button
           className="ldg-submit-btn secondary"

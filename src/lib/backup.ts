@@ -23,6 +23,7 @@ const HELD_BTC_KEY = "myledger.heldBtc.v1";
 const BTC_SELL_RECORDS_KEY = "myledger.btcSellRecords.v1";
 const SETTLEMENT_DAY_KEY = "myledger.settlementDay.v1";
 export const PRE_RESTORE_BACKUP_KEY = "myledger.preRestoreBackup.v1";
+export const LAST_BACKUP_AT_KEY = "myledger.lastBackupAt.v1";
 
 export const BACKUP_KEYS = {
   txns: TXNS_KEY,
@@ -90,6 +91,22 @@ export interface EncryptedBackupFile {
 export type ReadBackupFileResult =
   | { kind: "plain"; payload: BackupPayload }
   | { kind: "encrypted"; encrypted: EncryptedBackupFile };
+
+export function loadLastBackupAt(): string | null {
+  try {
+    const value = localStorage.getItem(LAST_BACKUP_AT_KEY);
+    if (!value || Number.isNaN(new Date(value).getTime())) return null;
+    return value;
+  } catch {
+    return null;
+  }
+}
+
+export function saveLastBackupAt(date = new Date()): string {
+  const value = date.toISOString();
+  localStorage.setItem(LAST_BACKUP_AT_KEY, value);
+  return value;
+}
 
 function readParsedStorage(key: string, fallback: unknown) {
   try {
