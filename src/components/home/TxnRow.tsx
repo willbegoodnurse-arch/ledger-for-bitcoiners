@@ -1,6 +1,12 @@
 import type { Currency, Txn } from "../../types";
-import { fmtKRW, krwToBtc, krwToSats, formatCategoryLabel } from "../../lib/format";
+import { fmtKRW, krwToBtc, krwToSats, formatCategoryLabel, formatTxnTime } from "../../lib/format";
 import CategoryIcon from "./CategoryIcon";
+
+function getTxnDisplayTime(txn: Txn): string {
+  const parsed = new Date(txn.date);
+  if (!Number.isNaN(parsed.getTime())) return formatTxnTime(txn.date);
+  return txn.time;
+}
 
 export default function TxnRow({ t, currency, btcKRW }: { t: Txn; currency: Currency; btcKRW: number }) {
   const isPos = t.amount >= 0;
@@ -31,7 +37,7 @@ export default function TxnRow({ t, currency, btcKRW }: { t: Txn; currency: Curr
             </span>
           )}
         </div>
-        <div className="ldg-txn-meta">{showCatLabel ? `${catLabel} · ${t.time}` : t.time}</div>
+        <div className="ldg-txn-meta">{showCatLabel ? `${catLabel} · ${getTxnDisplayTime(t)}` : getTxnDisplayTime(t)}</div>
       </div>
       <div className="ldg-txn-amt">
         <div className={`ldg-txn-main ${isPos ? "pos" : "neg"}`}>{main}</div>
