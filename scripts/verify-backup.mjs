@@ -8,6 +8,8 @@ const backupPath = join(root, "src", "lib", "backup.ts");
 const cardPath = join(root, "src", "components", "settings", "BackupRestoreCard.tsx");
 const deploymentPath = join(root, "docs", "DEPLOYMENT.md");
 const readmePath = join(root, "README.md");
+const dataModelPath = join(root, "docs", "DATA_MODEL.md");
+const ciPath = join(root, ".github", "workflows", "ci.yml");
 
 assert.equal(existsSync(backupPath), true, "src/lib/backup.ts exists");
 const backup = readFileSync(backupPath, "utf8");
@@ -31,11 +33,19 @@ assert.match(backup, /new Uint8Array\(16\)/, "encrypted backups use a 16-byte sa
 assert.match(backup, /new Uint8Array\(12\)/, "encrypted backups use a 12-byte IV");
 assert.match(backup, /비밀번호가 올바르지 않거나 손상된 백업입니다/, "decrypt failures use the requested error message");
 assert.match(backup, /myledger\.preRestoreBackup\.v1/, "pre-restore safety backup key exists");
+assert.match(backup, /myledger\.lastBackupAt\.v1/, "last backup timestamp key exists");
+assert.match(backup, /export function loadLastBackupAt/, "last backup timestamp can be loaded");
+assert.match(backup, /export function saveLastBackupAt/, "last backup timestamp can be saved");
 const backupKeysBlock = backup.match(/export const BACKUP_KEYS = \{[\s\S]*?\} as const;/)?.[0] ?? "";
 assert.doesNotMatch(
   backupKeysBlock,
   /preRestoreBackup/,
   "pre-restore safety backup is not recursively included in downloaded backups"
+);
+assert.doesNotMatch(
+  backupKeysBlock,
+  /lastBackupAt/,
+  "last backup UX timestamp is not recursively included in downloaded backups"
 );
 assert.match(backup, /app: APP_ID/, "backup payload includes app");
 assert.match(backup, /version: BACKUP_VERSION/, "backup payload includes version");
@@ -69,6 +79,12 @@ assert.match(card, /백업 파일에서 복원/, "restore UI exists");
 assert.match(card, /복원할 데이터/, "restore preview is shown");
 assert.match(card, /자동으로 안전백업/, "pre-restore safety backup guidance is shown");
 assert.match(card, /invalidItemsRemoved/, "invalid item removal is reported");
+assert.match(card, /loadLastBackupAt/, "last backup timestamp is loaded in backup UI");
+assert.match(card, /saveLastBackupAt/, "last backup timestamp is saved after backup export");
+assert.match(card, /마지막 백업/, "last backup date is shown");
+assert.match(card, /아직 백업 기록 없음/, "empty last backup state is shown");
+assert.match(card, /7일 이상/, "stale backup warning is shown");
+assert.match(card, /복원 완료 후 화면 새로고침이 필요할 수 있습니다/, "restore completion clearly explains reload may be needed");
 assert.match(card, /지금 새로고침/, "restore completion offers an explicit reload button");
 assert.match(card, /window\.location\.reload/, "reload button refreshes stale in-memory app state");
 
@@ -79,6 +95,25 @@ const security = readFileSync(join(root, "docs", "SECURITY.md"), "utf8");
 assert.match(docs + readme, /localStorage-only|localStorage 전용/, "localStorage-only warning documented");
 assert.match(docs + readme, /시드|개인키|API 키/, "sensitive key warning documented");
 assert.match(security, /myledger\.preRestoreBackup\.v1/, "pre-restore safety backup key is documented");
+assert.equal(existsSync(dataModelPath), true, "data model docs exist");
+const dataModel = readFileSync(dataModelPath, "utf8");
+assert.match(dataModel, /myledger\.lastBackupAt\.v1/, "data model documents last backup timestamp");
+assert.match(dataModel, /localStorage Keys/, "data model documents localStorage keys");
+assert.match(dataModel, /Backup JSON/, "data model documents plain backups");
+assert.match(dataModel, /Encrypted Backup JSON/, "data model documents encrypted backups");
+assert.match(dataModel, /new persisted field is added/, "data model warns to update backup validation for new fields");
+assert.equal(existsSync(ciPath), true, "GitHub Actions CI workflow exists");
+const ci = readFileSync(ciPath, "utf8");
+assert.match(ci, /pull_request/, "CI runs on pull requests");
+assert.match(ci, /branches:\s*[\s\S]*master/, "CI runs on pushes to master");
+assert.match(ci, /npm ci/, "CI installs with npm ci");
+assert.match(ci, /npm run build/, "CI runs build");
+assert.match(ci, /npm run verify:backup/, "CI runs backup verification");
+assert.match(ci, /npm run verify:recurring/, "CI runs recurring verification");
+assert.match(ci, /npm run verify:price-staleness/, "CI runs price staleness verification");
+assert.match(ci, /npm run verify:price-fallbacks/, "CI runs price fallback verification");
+assert.match(ci, /npm run verify:price-source-ui/, "CI runs price source UI verification");
+assert.match(ci, /npm run verify:settlement-sale-ux/, "CI runs settlement sale UX verification");
 
 const compilerOptions = { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 };
 const moduleUrl = (source) =>
@@ -123,6 +158,16 @@ class MemoryStorage {
 
 const storage = new MemoryStorage();
 globalThis.localStorage = storage;
+
+assert.equal(backupApi.loadLastBackupAt(), null, "missing last backup timestamp returns null");
+backupApi.saveLastBackupAt(new Date("2026-06-28T00:00:00.000Z"));
+assert.equal(
+  backupApi.loadLastBackupAt(),
+  "2026-06-28T00:00:00.000Z",
+  "last backup timestamp round-trips through localStorage"
+);
+storage.setItem("myledger.lastBackupAt.v1", "not-a-date");
+assert.equal(backupApi.loadLastBackupAt(), null, "invalid last backup timestamp is ignored");
 
 const validTxn = {
   id: 1,
