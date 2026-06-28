@@ -48,6 +48,7 @@
     "verify:help-page": "node scripts/verify-help-page.mjs",
     "verify:ownership": "node scripts/verify-ownership.mjs",
     "verify:onboarding": "node scripts/verify-onboarding.mjs",
+    "verify:txn-date-label": "node scripts/verify-txn-date-label.mjs",
     "verify:release": "npm run build && npm run verify:backup && npm run verify:recurring && npm run verify:price-source-ui && npm run verify:help-page && npm run verify:ownership && npm run verify:onboarding"
   },
   "dependencies": {
