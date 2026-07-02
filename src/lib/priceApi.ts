@@ -1,4 +1,5 @@
 const FETCH_TIMEOUT_MS = 8000;
+const UPBIT_BTC_KRW_URL = "https://api.upbit.com/v1/ticker?markets=KRW-BTC";
 
 async function fetchJson(url: string): Promise<unknown> {
   const res = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
@@ -17,13 +18,32 @@ async function fetchPositiveIntegerText(url: string): Promise<number> {
 }
 
 // 업비트 현재가 (KRW-BTC)
-export async function fetchUpbitBtcKrw(): Promise<number> {
-  const json = (await fetchJson("https://api.upbit.com/v1/ticker?markets=KRW-BTC")) as Array<{
+function parsePositivePrice(value: unknown, label: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    throw new Error(`${label}: invalid response`);
+  }
+  return value;
+}
+
+async function fetchUpbitBtcKrwDirect(): Promise<number> {
+  const json = (await fetchJson(UPBIT_BTC_KRW_URL)) as Array<{
     trade_price?: number;
   }>;
-  const price = json?.[0]?.trade_price;
-  if (typeof price !== "number" || !Number.isFinite(price)) throw new Error("Upbit: invalid response");
-  return price;
+  return parsePositivePrice(json?.[0]?.trade_price, "Upbit");
+}
+
+async function fetchUpbitBtcKrwProxy(): Promise<number> {
+  const json = (await fetchJson("/api/upbit")) as { btcKrw?: number };
+  return parsePositivePrice(json?.btcKrw, "Upbit proxy");
+}
+
+export async function fetchUpbitBtcKrw(): Promise<number> {
+  try {
+    return await fetchUpbitBtcKrwProxy();
+  } catch (proxyError) {
+    console.warn("Upbit proxy fetch failed; trying direct Upbit:", proxyError);
+    return fetchUpbitBtcKrwDirect();
+  }
 }
 
 // 바이낸스 현재가 (BTCUSDT)
